@@ -72,5 +72,7 @@ def index():
         return render_template("index.html", games=games)
 
 
+
+
 if __name__ == "__main__":
     app.run(debug=True)
