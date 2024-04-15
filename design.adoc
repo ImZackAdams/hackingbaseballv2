@@ -1,0 +1,159 @@
+# hackingbaseball
+
+= SPEC-001: Baseball Game Outcome Prediction and Betting Odds Web App
+:sectnums:
+:toc:
+
+== Background
+
+This project is conceived as a brand-new venture aimed at creating an MVP web application that provides predictive outcomes for baseball games coupled with real-time betting odds comparison across various sportsbooks. Initially, the service targets the niche of baseball sports betting enthusiasts with the intention to scale up progressively. The application currently features a simple yet functional machine learning model built with scikit-learn and a web page that displays the daily schedule of games, developed using the Flask framework and Bootstrap for the front end.
+
+== Requirements
+
+The MVP of the web application shall have the following requirements, prioritized using the MoSCoW method:
+
+*Must have:*
+- A machine learning model to predict the outcomes of baseball games.
+- A payment processing system to handle transactions without user account creation.
+- Display the prediction results for the purchased baseball game(s) immediately after payment.
+
+*Should have:*
+- Real-time retrieval of betting odds from various sportsbooks to be displayed alongside predictions.
+- A method to ensure privacy and anonymity for users.
+- Adequate security measures to protect transaction data.
+
+*Could have:*
+- A responsive front-end design that adapts to various devices.
+- An admin panel for the web app owner to manage game schedules and view transactions.
+
+*Won’t have for now:*
+- User account management features such as registration and login.
+- Advanced user analytics or prediction history.
+
+== Method
+
+=== Architecture Overview
+The system will be structured following a microservices architecture pattern, ensuring modularity and ease of maintenance.
+
+*Front-end*: The user interface will be built using Bootstrap for a responsive design. It will include views for the list of games, a shopping cart, and a results page.
+
+*Back-end*: Flask will serve as the back-end framework, handling HTTP requests, integrating with the machine learning model, and processing payments.
+
+*Machine Learning Model*: The existing scikit-learn model will be deployed as a service, which the Flask application will invoke to obtain predictions.
+
+*Payment Gateway*: Integration with Stripe for payment processing. It will handle transactions and return control to the Flask app upon completion.
+
+=== Database Design
+A relational database will be used to store game schedules, transactions, and prediction outcomes. This will be managed by an ORM within the Flask app for ease of database operations.
+
+=== Machine Learning Model Integration
+The scikit-learn model will predict game outcomes. The Flask app will pass the relevant game data to the model and receive the prediction in real-time.
+
+=== Payment Processing Flow
+Upon adding games to the cart and proceeding to checkout, users will be directed to a secure payment page provided by Stripe. After payment, Stripe will redirect back to the Flask app with the payment confirmation.
+
+=== Result Display
+After a successful payment, the user will be redirected to a results page where the prediction and betting odds are displayed.
+
+=== Betting Odds Retrieval
+A scheduled job will run to fetch the latest betting odds from various sportsbooks and update the database, which the Flask app will then display.
+
+[plantuml, method-sequence-diagram, png]
+....
+participant User_Interface
+participant Flask_App
+participant Machine_Learning_Service
+participant Payment_Service
+participant Database
+
+User_Interface -> Flask_App: Request game predictions
+Flask_App -> Machine_Learning_Service: Send game data
+Machine_Learning_Service -> Flask_App: Return prediction result
+Flask_App -> Payment_Service: Initiate payment process
+Payment_Service -> Flask_App: Confirm payment
+Flask_App -> Database: Log transaction
+Flask_App -> User_Interface: Display prediction and odds
+....
+
+
+== Implementation
+
+=== Machine Learning Model Deployment
+1. Prepare the scikit-learn model for deployment:
+   - Ensure the model is serialized and can be loaded efficiently.
+   - Test the model in a local Flask environment to confirm it works as expected.
+2. Deploy the model and Flask application on PythonAnywhere:
+   - Set up a PythonAnywhere account and choose an appropriate plan.
+   - Configure the web app on PythonAnywhere using the provided tools and upload your code.
+   - Set environmental variables if needed for any API keys or sensitive data.
+
+=== Payment Integration
+1. Set up a Stripe merchant account and obtain the API keys for integration.
+2. Implement the Stripe Checkout on the front-end to handle payments.
+3. Use Stripe webhooks to listen for successful payment events and trigger prediction result display.
+
+=== Front-end Implementation
+1. Develop the game schedule display page using Bootstrap with Flask rendering the template.
+2. Implement the shopping cart functionality using session-based storage.
+3. Create a results page to display the prediction and the odds after payment.
+
+=== Back-end Implementation
+1. Implement Flask routes for each of the web pages and API endpoints for dynamic content.
+2. Develop the logic for communicating with the machine learning model service.
+3. Set up secure handling of payment processing and confirmation logic.
+
+=== Betting Odds Retrieval Job
+1. Implement a scheduled job, possibly using Flask-APScheduler, to retrieve the latest betting odds.
+2. Parse the data and update the database accordingly.
+
+=== Database Setup
+1. Define the schema for storing game schedules, transactions, and prediction results.
+2. Use an ORM like SQLAlchemy in Flask for database operations.
+
+=== Security Measures
+1. Implement HTTPS to secure the web application. PythonAnywhere provides a simple way to set up HTTPS.
+2. Ensure secure handling of Stripe API keys and other sensitive information using environment variables.
+
+=== Testing
+1. Write unit and integration tests for both the Flask application and machine learning model interaction.
+2. Perform end-to-end testing of the payment workflow.
+
+=== Deployment
+1. Finalize the deployment on PythonAnywhere, ensuring that all components are properly configured and functioning.
+2. Test the complete system in the PythonAnywhere environment to ensure stability.
+3. Set up a basic monitoring solution to track the application's performance and availability.
+
+
+== Milestones
+
+Milestone 1: **Project Setup and Initial Testing**
+- Completion of initial setup including all local development environments.
+- First deployment of the machine learning model to a local Flask server for testing.
+- Deadline: 1 week from project start.
+
+Milestone 2: **Front-end and Back-end Integration**
+- Implementation and testing of the front-end using Bootstrap.
+- Integration of the Flask back-end with the machine learning model.
+- Initial integration tests to ensure that the Flask application can communicate with and receive predictions from the machine learning model.
+- Deadline: 2 weeks from project start.
+
+Milestone 3: **Full System Deployment on PythonAnywhere**
+- Deployment of the entire application stack on PythonAnywhere, including the machine learning model.
+- Finalize integration with Stripe for payment processing.
+- Complete system testing in the production environment, ensuring that predictions are correctly generated and displayed after payments.
+- Deadline: 4 weeks from project start.
+
+Milestone 4: **Betting Odds Retrieval Implementation and Testing**
+- Development and testing of the scheduled job for fetching betting odds.
+- Security enhancements including implementation of HTTPS and secure handling of sensitive data.
+- Deadline: 5 weeks from project start.
+
+Milestone 5: **Launch**
+- Official launch of the application to the public.
+- Monitoring and initial user feedback collection.
+- Deadline: 6 weeks from project start.
+
+Milestone 6: **Post-Launch Review and Initial Updates**
+- Review of system performance and user feedback.
+- Implementation of initial minor updates based on feedback.
+- Deadline: 8 weeks from project start.
