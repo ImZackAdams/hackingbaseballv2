@@ -1,0 +1,70 @@
+body {
+	background-color: #f0f8ff;
+	color: #021f40;
+	display: flex; 
+	flex-direction: column; 
+	min-height: 100vh; 
+	margin: 0; 
+}
+
+/* NAVBAR */
+
+/* Custom styles*/
+.navbar-custom {
+	background-color: #c20032;
+}
+.navbar-custom .navbar-brand,
+.navbar-custom .navbar-nav .nav-link {
+	color: #f0f8ff;
+}
+
+/* Push nav links to the right */
+.ml-auto {
+	margin-left: auto !important;
+}
+
+.navbar-brand {
+	font-size: 24px; 
+}
+
+
+/* LOGO */
+.logo-img {
+	height: 50px; 
+	width: 50px; 
+}
+
+.brand-name {
+	margin-left: 20px; 
+}
+
+/* HERO */
+.hero-content, .alert {
+	text-align: center;
+	max-width: 800px;
+	margin: 40px auto;
+}
+
+/*  CONTACT */
+
+#contact {
+	margin: 0 auto; 
+	min-width: 800px;
+}
+
+
+/* FOOTER */
+footer {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	text-align: center;
+	padding: 20px 0;
+	background-color: #021f40; 
+	color: #f0f8ff; 
+}
+
+footer small {
+	font-size: 24px;
+}
