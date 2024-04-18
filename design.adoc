@@ -33,127 +33,77 @@ The MVP of the web application shall have the following requirements, prioritize
 == Method
 
 === Architecture Overview
-The system will be structured following a microservices architecture pattern, ensuring modularity and ease of maintenance.
+The system will be developed as a modular monolith, structured to enable a small team to manage and understand the codebase effectively. This approach will allow for easy separation of concerns within the application while avoiding the complexity of a distributed microservices architecture.
 
-*Front-end*: The user interface will be built using Bootstrap for a responsive design. It will include views for the list of games, a shopping cart, and a results page.
+*Front-end*: A single-page application (SPA) that interacts with the Flask back-end via API calls. The user interface will be built using Bootstrap for a responsive design.
 
-*Back-end*: Flask will serve as the back-end framework, handling HTTP requests, integrating with the machine learning model, and processing payments.
+*Back-end*: A Flask application organized into separate modules representing different business logic domains such as user authentication, prediction processing, game management, payment processing, and odds comparison.
 
-*Machine Learning Model*: The existing scikit-learn model will be deployed as a service, which the Flask application will invoke to obtain predictions.
+*Database*: SQLite will be utilized as the database solution, given its simplicity and ease of integration with Flask. Each module will interact with the database through a common ORM layer.
 
-*Payment Gateway*: Integration with Stripe for payment processing. It will handle transactions and return control to the Flask app upon completion.
-
-=== Database Design
-A relational database will be used to store game schedules, transactions, and prediction outcomes. This will be managed by an ORM within the Flask app for ease of database operations.
+*Modules*: Each module will be designed to operate independently, with clear interfaces for interaction with other modules in the system.
 
 === Machine Learning Model Integration
-The scikit-learn model will predict game outcomes. The Flask app will pass the relevant game data to the model and receive the prediction in real-time.
+The machine learning model will be updated daily with new data to ensure predictions reflect the latest player and game statistics. A separate module within the Flask app will handle the training, updating, and prediction tasks of the model.
 
 === Payment Processing Flow
-Upon adding games to the cart and proceeding to checkout, users will be directed to a secure payment page provided by Stripe. After payment, Stripe will redirect back to the Flask app with the payment confirmation.
+The payment module will integrate with a third-party payment processor, such as Stripe, to handle transactions. It will interface with the front-end to initiate payment and return confirmation once the transaction is completed.
 
 === Result Display
-After a successful payment, the user will be redirected to a results page where the prediction and betting odds are displayed.
+After a successful transaction, the predictions module will be invoked to provide real-time predictions to the user, along with the betting odds information from the odds comparison module.
 
 === Betting Odds Retrieval
-A scheduled job will run to fetch the latest betting odds from various sportsbooks and update the database, which the Flask app will then display.
+A scheduled task within the odds comparison module will regularly update betting odds data from various sportsbooks.
 
 [plantuml, method-sequence-diagram, png]
 ....
 participant User_Interface
 participant Flask_App
-participant Machine_Learning_Service
-participant Payment_Service
+participant Prediction_Module
+participant Payment_Module
 participant Database
 
 User_Interface -> Flask_App: Request game predictions
-Flask_App -> Machine_Learning_Service: Send game data
-Machine_Learning_Service -> Flask_App: Return prediction result
-Flask_App -> Payment_Service: Initiate payment process
-Payment_Service -> Flask_App: Confirm payment
+Flask_App -> Prediction_Module: Send game data
+Prediction_Module -> Flask_App: Return prediction result
+User_Interface -> Payment_Module: Initiate payment process
+Payment_Module -> User_Interface: Confirm payment
 Flask_App -> Database: Log transaction
-Flask_App -> User_Interface: Display prediction and odds
+User_Interface -> Flask_App: Display prediction and odds
 ....
-
 
 == Implementation
 
-=== Machine Learning Model Deployment
-1. Prepare the scikit-learn model for deployment:
-   - Ensure the model is serialized and can be loaded efficiently.
-   - Test the model in a local Flask environment to confirm it works as expected.
-2. Deploy the model and Flask application on PythonAnywhere:
-   - Set up a PythonAnywhere account and choose an appropriate plan.
-   - Configure the web app on PythonAnywhere using the provided tools and upload your code.
-   - Set environmental variables if needed for any API keys or sensitive data.
+=== Implementation Approach
+Given the team's size and experience level, the implementation will focus on incremental development with a high degree of collaboration and regular code reviews. The use of a virtual environment and version control (Git) will be essential to manage dependencies and changes.
 
-=== Payment Integration
-1. Set up a Stripe merchant account and obtain the API keys for integration.
-2. Implement the Stripe Checkout on the front-end to handle payments.
-3. Use Stripe webhooks to listen for successful payment events and trigger prediction result display.
+=== Development Stages
+1. Module implementation will start with the most critical functions (user authentication, predictions, and payment processing).
+2. The application will be developed and tested locally, with regular commits to a shared repository for collaboration.
+3. Upon achieving a stable version with core functionality, the application will be deployed to a cloud hosting provider such as PythonAnywhere for real-world testing.
 
-=== Front-end Implementation
-1. Develop the game schedule display page using Bootstrap with Flask rendering the template.
-2. Implement the shopping cart functionality using session-based storage.
-3. Create a results page to display the prediction and the odds after payment.
-
-=== Back-end Implementation
-1. Implement Flask routes for each of the web pages and API endpoints for dynamic content.
-2. Develop the logic for communicating with the machine learning model service.
-3. Set up secure handling of payment processing and confirmation logic.
-
-=== Betting Odds Retrieval Job
-1. Implement a scheduled job, possibly using Flask-APScheduler, to retrieve the latest betting odds.
-2. Parse the data and update the database accordingly.
-
-=== Database Setup
-1. Define the schema for storing game schedules, transactions, and prediction results.
-2. Use an ORM like SQLAlchemy in Flask for database operations.
-
-=== Security Measures
-1. Implement HTTPS to secure the web application. PythonAnywhere provides a simple way to set up HTTPS.
-2. Ensure secure handling of Stripe API keys and other sensitive information using environment variables.
-
-=== Testing
-1. Write unit and integration tests for both the Flask application and machine learning model interaction.
-2. Perform end-to-end testing of the payment workflow.
-
-=== Deployment
-1. Finalize the deployment on PythonAnywhere, ensuring that all components are properly configured and functioning.
-2. Test the complete system in the PythonAnywhere environment to ensure stability.
-3. Set up a basic monitoring solution to track the application's performance and availability.
-
+=== Testing and Quality Assurance
+A testing suite will be established early in development to ensure that each module functions correctly both independently and within the context of the larger application. Automated tests will be integrated into the development pipeline.
 
 == Milestones
 
-Milestone 1: **Project Setup and Initial Testing**
-- Completion of initial setup including all local development environments.
-- First deployment of the machine learning model to a local Flask server for testing.
-- Deadline: 1 week from project start.
+The project milestones will be divided into two-week sprints, each focusing on a set of deliverables corresponding to the modules of the application. The final milestone will culminate in the launch of the application.
 
-Milestone 2: **Front-end and Back-end Integration**
-- Implementation and testing of the front-end using Bootstrap.
-- Integration of the Flask back-end with the machine learning model.
-- Initial integration tests to ensure that the Flask application can communicate with and receive predictions from the machine learning model.
+Milestone 1: **Core Module Development**
+- Development of the prediction and payment processing modules.
 - Deadline: 2 weeks from project start.
 
-Milestone 3: **Full System Deployment on PythonAnywhere**
-- Deployment of the entire application stack on PythonAnywhere, including the machine learning model.
-- Finalize integration with Stripe for payment processing.
-- Complete system testing in the production environment, ensuring that predictions are correctly generated and displayed after payments.
+Milestone 2: **Additional Modules and Front-end Integration**
+- Development of the game management and odds comparison modules.
+- Integration of the front-end with the back-end modules.
 - Deadline: 4 weeks from project start.
 
-Milestone 4: **Betting Odds Retrieval Implementation and Testing**
-- Development and testing of the scheduled job for fetching betting odds.
-- Security enhancements including implementation of HTTPS and secure handling of sensitive data.
-- Deadline: 5 weeks from project start.
-
-Milestone 5: **Launch**
-- Official launch of the application to the public.
-- Monitoring and initial user feedback collection.
+Milestone 3: **Testing and Iteration**
+- Comprehensive testing of all modules.
+- Iterative improvements based on test results.
 - Deadline: 6 weeks from project start.
 
-Milestone 6: **Post-Launch Review and Initial Updates**
-- Review of system performance and user feedback.
-- Implementation of initial minor updates based on feedback.
+Milestone 4: **Deployment and Launch**
+- Deployment of the full application stack on the hosting platform.
+- Final testing and launch of the application.
 - Deadline: 8 weeks from project start.
