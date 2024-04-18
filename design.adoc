@@ -6,104 +6,88 @@
 
 == Background
 
-This project is conceived as a brand-new venture aimed at creating an MVP web application that provides predictive outcomes for baseball games coupled with real-time betting odds comparison across various sportsbooks. Initially, the service targets the niche of baseball sports betting enthusiasts with the intention to scale up progressively. The application currently features a simple yet functional machine learning model built with scikit-learn and a web page that displays the daily schedule of games, developed using the Flask framework and Bootstrap for the front end.
+This project is conceived as a brand-new venture aimed at creating an MVP web application that provides predictive outcomes for baseball games coupled with real-time betting odds comparison across various sportsbooks. Initially targeting baseball sports betting enthusiasts, the service is designed to start small with a robust, scalable architecture utilizing a Flask and scikit-learn stack for predictive modeling and Bootstrap for the front end.
 
 == Requirements
 
-The MVP of the web application shall have the following requirements, prioritized using the MoSCoW method:
+The web application shall prioritize requirements as follows:
 
 *Must have:*
-- A machine learning model to predict the outcomes of baseball games.
-- A payment processing system to handle transactions without user account creation.
-- Display the prediction results for the purchased baseball game(s) immediately after payment.
+- A predictive model for baseball game outcomes.
+- A payment processing system to handle transactions.
+- Immediate display of predictions after payment.
 
 *Should have:*
-- Real-time retrieval of betting odds from various sportsbooks to be displayed alongside predictions.
-- A method to ensure privacy and anonymity for users.
-- Adequate security measures to protect transaction data.
+- Real-time retrieval of betting odds.
+- User privacy and transaction security measures.
 
 *Could have:*
-- A responsive front-end design that adapts to various devices.
-- An admin panel for the web app owner to manage game schedules and view transactions.
+- Responsive front-end for various devices.
+- Admin panel for schedule and transaction management.
 
 *Won’t have for now:*
-- User account management features such as registration and login.
-- Advanced user analytics or prediction history.
+- User account registration and login.
+- Advanced analytics of user predictions.
 
 == Method
 
 === Architecture Overview
-The system will be developed as a modular monolith, structured to enable a small team to manage and understand the codebase effectively. This approach will allow for easy separation of concerns within the application while avoiding the complexity of a distributed microservices architecture.
+The application will adopt a Modular Monolithic architecture with distinct modules within a single codebase to facilitate rapid development and easier maintenance:
 
-*Front-end*: A single-page application (SPA) that interacts with the Flask back-end via API calls. The user interface will be built using Bootstrap for a responsive design.
-
-*Back-end*: A Flask application organized into separate modules representing different business logic domains such as user authentication, prediction processing, game management, payment processing, and odds comparison.
-
-*Database*: SQLite will be utilized as the database solution, given its simplicity and ease of integration with Flask. Each module will interact with the database through a common ORM layer.
-
-*Modules*: Each module will be designed to operate independently, with clear interfaces for interaction with other modules in the system.
+*Front-end*: A responsive SPA built with Bootstrap.
+*Back-end*: Flask serves as the backbone, handling API requests and integrating modules.
+*Database*: SQLite managed through SQLAlchemy, with modular tables for different domains.
+*Modules*: Include Data Collection/Cleaning, Prediction, Game Management, Payment Processing, and Odds Comparison.
 
 === Machine Learning Model Integration
-The machine learning model will be updated daily with new data to ensure predictions reflect the latest player and game statistics. A separate module within the Flask app will handle the training, updating, and prediction tasks of the model.
+The model updates daily to reflect new game data, ensuring accuracy with minimal latency.
 
 === Payment Processing Flow
-The payment module will integrate with a third-party payment processor, such as Stripe, to handle transactions. It will interface with the front-end to initiate payment and return confirmation once the transaction is completed.
+Utilizes Stripe for secure transaction processing with real-time updates to the application upon payment confirmation.
 
 === Result Display
-After a successful transaction, the predictions module will be invoked to provide real-time predictions to the user, along with the betting odds information from the odds comparison module.
+Post-payment, predictions and odds are displayed instantly, leveraging AJAX for dynamic content updates.
 
 === Betting Odds Retrieval
-A scheduled task within the odds comparison module will regularly update betting odds data from various sportsbooks.
+Regular updates from sportsbooks are implemented via scheduled tasks.
 
-[plantuml, method-sequence-diagram, png]
-....
-participant User_Interface
-participant Flask_App
-participant Prediction_Module
-participant Payment_Module
-participant Database
-
-User_Interface -> Flask_App: Request game predictions
-Flask_App -> Prediction_Module: Send game data
-Prediction_Module -> Flask_App: Return prediction result
-User_Interface -> Payment_Module: Initiate payment process
-Payment_Module -> User_Interface: Confirm payment
-Flask_App -> Database: Log transaction
-User_Interface -> Flask_App: Display prediction and odds
-....
+...
 
 == Implementation
 
-=== Implementation Approach
-Given the team's size and experience level, the implementation will focus on incremental development with a high degree of collaboration and regular code reviews. The use of a virtual environment and version control (Git) will be essential to manage dependencies and changes.
+=== Quick Launch Strategy
+The strategy focuses on rapid development cycles, prioritized feature development, and robust testing practices:
 
-=== Development Stages
-1. Module implementation will start with the most critical functions (user authentication, predictions, and payment processing).
-2. The application will be developed and tested locally, with regular commits to a shared repository for collaboration.
-3. Upon achieving a stable version with core functionality, the application will be deployed to a cloud hosting provider such as PythonAnywhere for real-world testing.
+1. **Core Module Development**: Start with essential modules (Prediction, Payment).
+2. **Front-End Development**: Simultaneously develop the front-end to speed up the feedback cycle.
+3. **Integration and Testing**: Early and continuous integration of components, with a focus on automated testing.
 
-=== Testing and Quality Assurance
-A testing suite will be established early in development to ensure that each module functions correctly both independently and within the context of the larger application. Automated tests will be integrated into the development pipeline.
+=== Condensed Development Phases
+1. **Module Development**: Rapid development of independent modules with dedicated teams.
+2. **Continuous Integration/Deployment**: Implement CI/CD pipelines for real-time testing and deployment.
+3. **Daily Stand-Ups**: Increase communication to track progress and address issues promptly.
+4. **Flexible Work Hours**: Encourage flexible hours to maximize productivity across remote teams.
+
+...
 
 == Milestones
 
-The project milestones will be divided into two-week sprints, each focusing on a set of deliverables corresponding to the modules of the application. The final milestone will culminate in the launch of the application.
-
-Milestone 1: **Core Module Development**
-- Development of the prediction and payment processing modules.
+Milestone 1: **Setup and Core Development**
+- Environment setup and core modules development (Prediction, Payment).
 - Deadline: 2 weeks from project start.
 
-Milestone 2: **Additional Modules and Front-end Integration**
-- Development of the game management and odds comparison modules.
-- Integration of the front-end with the back-end modules.
+Milestone 2: **Front-End Integration and Secondary Modules**
+- Completion of the front-end and integration with back-end services.
+- Development of Game Management and Odds Comparison modules.
 - Deadline: 4 weeks from project start.
 
-Milestone 3: **Testing and Iteration**
-- Comprehensive testing of all modules.
-- Iterative improvements based on test results.
+Milestone 3: **System Integration and Testing**
+- Full system integration.
+- Extensive testing, including load and security testing.
 - Deadline: 6 weeks from project start.
 
 Milestone 4: **Deployment and Launch**
-- Deployment of the full application stack on the hosting platform.
-- Final testing and launch of the application.
+- Final adjustments based on testing feedback.
+- Deployment to production.
+- Soft launch followed by full public launch.
 - Deadline: 8 weeks from project start.
