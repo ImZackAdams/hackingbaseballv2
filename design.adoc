@@ -1,21 +1,19 @@
-# hackingbaseball
-
 = SPEC-001: Baseball Game Outcome Prediction and Betting Odds Web App
 :sectnums:
 :toc:
 
 == Background
 
-This project is conceived as a brand-new venture aimed at creating an MVP web application that provides predictive outcomes for baseball games coupled with real-time betting odds comparison across various sportsbooks. Initially targeting baseball sports betting enthusiasts, the service is designed to start small with a robust, scalable architecture utilizing a Flask and scikit-learn stack for predictive modeling and Bootstrap for the front end.
+This project is conceived as a brand-new venture aimed at creating an MVP web application that provides predictive outcomes for baseball games coupled with real-time betting odds comparison across various sportsbooks. The application is designed to start small with scalable architecture, utilizing Flask and scikit-learn for predictive modeling, and Bootstrap for the front-end.
 
 == Requirements
 
-The web application shall prioritize requirements as follows:
+The web application’s requirements are organized using the MoSCoW method:
 
 *Must have:*
 - A predictive model for baseball game outcomes.
 - A payment processing system to handle transactions.
-- Immediate display of predictions after payment.
+- Immediate display of predictions and odds after payment.
 
 *Should have:*
 - Real-time retrieval of betting odds.
@@ -32,62 +30,74 @@ The web application shall prioritize requirements as follows:
 == Method
 
 === Architecture Overview
-The application will adopt a Modular Monolithic architecture with distinct modules within a single codebase to facilitate rapid development and easier maintenance:
+The application will adopt a Modular Monolithic architecture with distinct modules within a single codebase. This facilitates rapid development, easier maintenance, and effective scaling as needed:
 
 *Front-end*: A responsive SPA built with Bootstrap.
-*Back-end*: Flask serves as the backbone, handling API requests and integrating modules.
-*Database*: SQLite managed through SQLAlchemy, with modular tables for different domains.
-*Modules*: Include Data Collection/Cleaning, Prediction, Game Management, Payment Processing, and Odds Comparison.
+*Back-end*: Flask serves as the backbone, handling API requests and integrating various modules.
+*Database*: SQLite managed through SQLAlchemy, organized into modular tables for different domains.
+*Modules*: Include Prediction, Payment Processing, Game Management, Odds Comparison, and Result Display.
 
-=== Machine Learning Model Integration
-The model updates daily to reflect new game data, ensuring accuracy with minimal latency.
+=== Module Interactions
+Each module has specific roles and interacts with others to ensure a seamless flow of data and functionality:
 
-=== Payment Processing Flow
-Utilizes Stripe for secure transaction processing with real-time updates to the application upon payment confirmation.
+- **Prediction Module**: Handles all machine learning predictions. Interacts with the Game Management Module to obtain necessary game data and sends prediction results to the Result Display Module.
+- **Payment Processing Module**: Manages financial transactions. Notifies the Result Display Module upon successful payment to trigger the display of predictions and odds.
+- **Game Management Module**: Manages game-related data. Provides necessary details to the Prediction Module for generating accurate predictions.
+- **Odds Comparison Module**: Fetches and compares betting odds from various sportsbooks. Supplies updated odds information to the Result Display Module for display alongside predictions.
+- **Result Display Module**: Controls the user interface elements for presenting results. Receives data from both the Prediction and Odds Comparison Modules to display to users post-payment.
 
-=== Result Display
-Post-payment, predictions and odds are displayed instantly, leveraging AJAX for dynamic content updates.
+=== Detailed Module Descriptions
+Each module’s responsibilities and interactions are defined to clarify their roles within the system:
 
-=== Betting Odds Retrieval
-Regular updates from sportsbooks are implemented via scheduled tasks.
+*Prediction Module*:
+- Fetches game data from the Game Management Module.
+- Utilizes machine learning algorithms to predict outcomes.
+- Sends predictions to the Result Display Module for user display.
+
+*Payment Processing Module*:
+- Integrates with Stripe to process user transactions securely.
+- Upon successful payment, signals the Result Display Module to update the user interface with results.
+
+*Game Management Module*:
+- Maintains schedules and details of baseball games.
+- Provides the Prediction Module with required data for analysis.
+
+*Odds Comparison Module*:
+- Regularly updates odds from multiple sportsbooks.
+- Provides current odds to the Result Display Module for display.
+
+*Result Display Module*:
+- Receives predictions and odds data.
+- Displays this information dynamically on the user interface following a successful payment.
 
 ...
 
 == Implementation
 
-=== Quick Launch Strategy
-The strategy focuses on rapid development cycles, prioritized feature development, and robust testing practices:
+=== Development Strategy
+To ensure timely delivery within the 8-week timeframe, the development strategy emphasizes parallel module development, continuous integration, and automated testing:
 
-1. **Core Module Development**: Start with essential modules (Prediction, Payment).
-2. **Front-End Development**: Simultaneously develop the front-end to speed up the feedback cycle.
-3. **Integration and Testing**: Early and continuous integration of components, with a focus on automated testing.
+1. **Core Module Development**: Priority development of the Prediction and Payment Processing modules.
+2. **Front-End Development**: Concurrent development of the user interface to align with backend progress.
+3. **Integration and Testing**: Continuous integration of all components, with extensive automated testing to ensure system integrity and performance.
 
-=== Condensed Development Phases
-1. **Module Development**: Rapid development of independent modules with dedicated teams.
-2. **Continuous Integration/Deployment**: Implement CI/CD pipelines for real-time testing and deployment.
-3. **Daily Stand-Ups**: Increase communication to track progress and address issues promptly.
-4. **Flexible Work Hours**: Encourage flexible hours to maximize productivity across remote teams.
+=== Milestones
 
-...
-
-== Milestones
-
-Milestone 1: **Setup and Core Development**
-- Environment setup and core modules development (Prediction, Payment).
+Milestone 1: **Core Backend and Payment Integration**
+- Set up the environment and develop the core Prediction and Payment modules.
 - Deadline: 2 weeks from project start.
 
-Milestone 2: **Front-End Integration and Secondary Modules**
-- Completion of the front-end and integration with back-end services.
-- Development of Game Management and Odds Comparison modules.
+Milestone 2: **Front-End Development and Module Integration**
+- Develop the Front-End Module and integrate with backend services.
+- Initiate development on the Game Management and Odds Comparison modules.
 - Deadline: 4 weeks from project start.
 
-Milestone 3: **System Integration and Testing**
-- Full system integration.
-- Extensive testing, including load and security testing.
+Milestone 3: **Complete System Integration and Testing**
+- Integrate all modules and perform comprehensive system testing.
 - Deadline: 6 weeks from project start.
 
 Milestone 4: **Deployment and Launch**
-- Final adjustments based on testing feedback.
-- Deployment to production.
-- Soft launch followed by full public launch.
+- Conduct final adjustments based on test feedback.
+- Deploy the application to the production environment.
+- Officially launch the application to the public.
 - Deadline: 8 weeks from project start.
