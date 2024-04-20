@@ -101,3 +101,70 @@ Milestone 4: **Deployment and Launch**
 - Deploy the application to the production environment.
 - Officially launch the application to the public.
 - Deadline: 8 weeks from project start.
+
+
+== Directory Structure
+
+[source,asciidoc]
+----
+hackingbaseball/
+│
+├── app/                          # Application code
+│   ├── __init__.py               # Initialize the Flask app, register blueprints
+│   ├── config.py                 # Configuration settings for the Flask app
+│   │
+│   ├── modules/                  # Directory for all modular components of the application
+│   │   ├── __init__.py           # Imports and blueprint registration for modules
+│   │   ├── prediction/
+│   │   │   ├── __init__.py       # Blueprint for the prediction module
+│   │   │   ├── models.py         # Database models related to predictions
+│   │   │   ├── routes.py         # Routes specific to prediction functionality
+│   │   │   └── utils.py          # Utility functions for prediction operations
+│   │   │
+│   │   ├── payment/
+│   │   │   ├── __init__.py       # Blueprint for the payment module
+│   │   │   ├── models.py         # Payment related database models
+│   │   │   ├── routes.py         # Payment processing routes
+│   │   │   └── utils.py          # Payment utility functions
+│   │   │
+│   │   ├── game_management/
+│   │   │   ├── __init__.py       # Blueprint for game management module
+│   │   │   ├── models.py         # Game management models
+│   │   │   ├── routes.py         # Routes for managing game data
+│   │   │   └── utils.py          # Utilities for game data manipulation
+│   │   │
+│   │   ├── odds_comparison/
+│   │   │   ├── __init__.py       # Blueprint for the odds comparison module
+│   │   │   ├── models.py         # Models for odds data
+│   │   │   ├── routes.py         # Routes for odds fetching and comparison
+│   │   │   └── utils.py          # Utility functions for odds comparison
+│   │   │
+│   │   └── result_display/
+│   │       ├── __init__.py       # Blueprint for result display module
+│   │       ├── models.py         # Models for storing display data
+│   │       ├── routes.py         # Routes for rendering results
+│   │       └── utils.py          # Utility functions for data display
+│   │
+│   ├── static/                   # Static files like CSS, JS, and images
+│   │   ├── css/                  # CSS files
+│   │   ├── js/                   # JavaScript files
+│   │   └── images/               # Image files
+│   │
+│   └── templates/                # Templates for rendering views
+│       ├── layout.html           # Base layout
+│       └── view.html             # Specific views for modules
+│
+├── migrations/                   # Database migrations
+│   └── versions/                 # Migration scripts
+│
+├── tests/                        # Test suite for the application
+│   ├── __init__.py               # Initialize testing setup
+│   ├── test_prediction.py        # Tests for prediction module
+│   ├── test_payment.py           # Tests for payment module
+│   └── test_game_management.py   # Tests for game management
+│
+├── venv/                         # Virtual environment for dependencies
+├── requirements.txt              # Project dependencies
+├── run.py                        # Script to run the Flask application
+└── README.md                     # Project documentation
+----
