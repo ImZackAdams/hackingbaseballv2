@@ -1,30 +1,12 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
-conda install pandas sqlalchemy
-
-
-# In[2]:
-
 
 from sqlalchemy import create_engine
 import pandas as pd
 import numpy as np
 
 
-
-# In[3]:
-
-
 # Set display options to show more rows and columns
 pd.set_option('display.max_rows', 100)
 pd.set_option('display.max_columns', 50)
-
-
-# In[4]:
 
 
 # Create a SQLite engine to connect to the baseball data database
