@@ -1,20 +1,7 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
 
 import pandas as pd
 from pybaseball import schedule_and_record
 
-
-# In[ ]:
-
-
-
-
-
-# In[2]:
 
 
 # List of MLB team abbreviations
@@ -48,27 +35,9 @@ unique_games = all_games.drop_duplicates(subset=['unique_id'])
 
 unique_games = unique_games.drop(columns=['unique_id'])
 
-
-
-# In[3]:
-
-
 pd.set_option('display.max_rows', None)
 
-
-# In[4]:
-
-
-# print(unique_games)
-
-
-# In[5]:
-
-
 unique_games.shape
-
-
-# In[6]:
 
 
 unique_games['Date'] = pd.to_datetime(unique_games['Date'], errors='coerce', format='%A, %b %d')
@@ -80,10 +49,6 @@ unique_games_sorted = unique_games.sort_values(by='Date', ascending=True)
 unique_games_sorted = unique_games_sorted.reset_index(drop=True)
 
 
-
-# In[7]:
-
-
 unique_games['Date'] = unique_games['Date'].apply(lambda d: d.replace(year=2024))
 
 
@@ -92,15 +57,6 @@ unique_games_sorted = unique_games.sort_values(by='Date', ascending=True)
 unique_games_sorted = unique_games_sorted.reset_index(drop=True)
 
 print(unique_games_sorted)
-
-
-# In[8]:
-
-
-
-
-
-# In[ ]:
 
 
 

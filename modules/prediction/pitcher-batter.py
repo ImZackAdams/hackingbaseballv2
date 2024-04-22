@@ -1,5 +1,3 @@
-
-
 from sqlalchemy import create_engine
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -7,21 +5,17 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
 
-
 # Set display options to show more rows and columns
 pd.set_option('display.max_rows', 100)
 pd.set_option('display.max_columns', 50)
-
 
 # Assuming the data is stored in a SQLite database (adjust if different)
 engine = create_engine('sqlite:///baseball_data.db')
 # df = pd.read_sql("SELECT * FROM statcast_data", engine)  # Replace your_table_name with the actual table name
 
 
-
 query = "SELECT * FROM statcast_data LIMIT 1000000"
 df = pd.read_sql(query, engine)
-
 
 # Create binary flags for hits and walks
 df['is_hit'] = df['events'].isin(['single', 'double', 'triple', 'home_run']).astype(int)
@@ -40,14 +34,12 @@ matchup_stats['on_base_percentage'] = (matchup_stats['is_hit'] + matchup_stats['
 
 print(matchup_stats)
 
-
 df['winning_team'] = df['post_home_score'] > df['post_away_score']  # Simplification for demonstration
 df = df.merge(matchup_stats, on=['pitcher', 'batter'], how='left')
 
 # Encode winning_team as binary target variable
 label_encoder = LabelEncoder()
 df['winning_team_encoded'] = label_encoder.fit_transform(df['winning_team'])
-
 
 X = df[['batting_average', 'on_base_percentage']].fillna(0)  # Fill NaN values
 y = df['winning_team_encoded']
@@ -57,20 +49,13 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 model = RandomForestClassifier(random_state=42)
 model.fit(X_train, y_train)
 
-
 y_pred = model.predict(X_test)
 print("Model Accuracy:", accuracy_score(y_test, y_pred))
 
-
-
-
-df['is_home'] = (df['home_team'] == 'YourTeamName').astype(int)  # Replace 'YourTeamName' with the actual team name or logic to handle all teams
-
-
+df['is_home'] = (df['home_team'] == 'YourTeamName').astype(
+    int)  # Replace 'YourTeamName' with the actual team name or logic to handle all teams
 
 X = df[['batting_average', 'on_base_percentage', 'is_home']].fillna(0)
-
-
 
 from sklearn.model_selection import GridSearchCV
 
@@ -89,86 +74,10 @@ best_model = grid_search.best_estimator_
 y_pred_best = best_model.predict(X_test)
 print("Improved Model Accuracy:", accuracy_score(y_test, y_pred_best))
 
-
 from sklearn.metrics import classification_report, roc_auc_score
 
 print(classification_report(y_test, y_pred))
 print("ROC-AUC Score:", roc_auc_score(y_test, y_pred))
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
 
 
 # TODO CLEANUP BELOW
@@ -307,121 +216,61 @@ print("ROC-AUC Score:", roc_auc_score(y_test, y_pred))
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
-
-
 # In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
 
 
 # In[ ]:
@@ -491,215 +340,106 @@ print("ROC-AUC Score:", roc_auc_score(y_test, y_pred))
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
+# In[ ]:
 
 
 # In[ ]:
 
 
-
-
-
 # In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
