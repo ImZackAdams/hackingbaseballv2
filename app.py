@@ -61,8 +61,8 @@ def index():
 
     games = [{
         'game_date': game['Date'],
-        'home_team': game['Tm'],  # Ensure this matches your DataFrame column name for the home team
-        'away_team': game['Opp'],  # Ensure this matches your DataFrame column name for the away team
+        'home_team': game['Tm'],
+        'away_team': game['Opp'],
     } for game in games_today.to_dict(orient='records')]
 
     if not games:
