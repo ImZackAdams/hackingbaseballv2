@@ -1,8 +1,8 @@
 # File: prediction/routes.py
 
 from flask import Blueprint, jsonify, request
-from game_management.utils import get_team_roster  # Importing from game_management module
-from prediction.utils import get_historical_stats, make_predictions  # Import utility functions
+from modules.game_management.utils import get_team_roster  # Importing from game_management module
+from modules.prediction.utils import get_historical_stats, make_predictions  # Import utility functions
 
 prediction_bp = Blueprint('prediction', __name__)
 
