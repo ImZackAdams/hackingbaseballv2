@@ -66,20 +66,19 @@
             With our AI/ML model tailored for baseball statistics, we can predict the outcome of games with remarkable accuracy. Whether you're a die-hard fan or just curious about the sport, our website provides insights that make it easy to know who's going to win each game.
         </p>
     </div>
-    {% if message %}
-    <div class="alert alert-info" role="alert">{{ message }}</div>
-    {% else %}
+    {% if games %}
     <div>
         <h2>Today's Games</h2>
         <ul class="list-group">
-    {% for game in games %}
-    <li class="list-group-item">
-    {{ game.away_team }} at {{ game.home_team }} - {{ game.formatted_date }}
-</li>
-
-    {% endfor %}
-</ul>
+            {% for game in games %}
+            <li class="list-group-item">
+                {{ game.away_team }} at {{ game.home_team }} - {{ game.formatted_date }}
+            </li>
+            {% endfor %}
+        </ul>
     </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">No games scheduled for today.</div>
     {% endif %}
 </section>
 
