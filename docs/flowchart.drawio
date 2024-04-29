@@ -1,0 +1,70 @@
+<mxfile host="app.diagrams.net" modified="2024-04-29T03:31:24.373Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" etag="MK1rJ33-aOttwOXR2KWa" version="24.3.0" type="device">
+  <diagram name="Page-1" id="0_qHHgdiISovMlTwicJp">
+    <mxGraphModel dx="1358" dy="967" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="7XFKLlVe6kwbbdnfO9Eq-1" value="Prediction Module" style="whiteSpace=wrap;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="455" y="20" width="144" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="7XFKLlVe6kwbbdnfO9Eq-2" value="Result Display Module" style="whiteSpace=wrap;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="836" y="82" width="170" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="7XFKLlVe6kwbbdnfO9Eq-3" value="Game Management Module" style="whiteSpace=wrap;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="208" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="7XFKLlVe6kwbbdnfO9Eq-4" value="User Interface" style="whiteSpace=wrap;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1132" y="82" width="117" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="7XFKLlVe6kwbbdnfO9Eq-5" value="Payment Processing Module" style="whiteSpace=wrap;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="421" y="104" width="211" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="7XFKLlVe6kwbbdnfO9Eq-6" value="External Payment Gateway" style="whiteSpace=wrap;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="816" y="227" width="208" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="7XFKLlVe6kwbbdnfO9Eq-7" value="Odds Comparison Module" style="whiteSpace=wrap;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="430" y="188" width="194" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="7XFKLlVe6kwbbdnfO9Eq-8" value="Sends Predictions" style="curved=1;startArrow=none;endArrow=block;exitX=0.9958224826388888;exitY=0.5;entryX=0.17826510939741758;entryY=-0.014705882352941176;rounded=0;" edge="1" parent="1" source="7XFKLlVe6kwbbdnfO9Eq-1" target="7XFKLlVe6kwbbdnfO9Eq-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="724" y="37" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7XFKLlVe6kwbbdnfO9Eq-9" value="Provides Game Data" style="curved=1;startArrow=none;endArrow=block;exitX=0.9984224759615384;exitY=0.5;entryX=-0.00146484375;entryY=0.5;rounded=0;" edge="1" parent="1" source="7XFKLlVe6kwbbdnfO9Eq-3" target="7XFKLlVe6kwbbdnfO9Eq-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7XFKLlVe6kwbbdnfO9Eq-10" value="Displays" style="curved=1;startArrow=none;endArrow=block;exitX=0.9978860294117647;exitY=0.4852941176470588;entryX=0.0005341880341880342;entryY=0.4852941176470588;rounded=0;" edge="1" parent="1" source="7XFKLlVe6kwbbdnfO9Eq-2" target="7XFKLlVe6kwbbdnfO9Eq-4">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7XFKLlVe6kwbbdnfO9Eq-11" value="Notifies" style="curved=1;startArrow=none;endArrow=block;exitX=1.0008145734597156;exitY=0.1465322226277968;entryX=-0.0029411764705882353;entryY=0.4852941176470588;rounded=0;" edge="1" parent="1" source="7XFKLlVe6kwbbdnfO9Eq-5" target="7XFKLlVe6kwbbdnfO9Eq-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="724" y="99" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7XFKLlVe6kwbbdnfO9Eq-12" value="Processes Payment" style="curved=1;startArrow=none;endArrow=block;exitX=0.6299202524756292;exitY=1;entryX=0.0016526442307692308;entryY=0.5;rounded=0;" edge="1" parent="1" source="7XFKLlVe6kwbbdnfO9Eq-5" target="7XFKLlVe6kwbbdnfO9Eq-6">
+          <mxGeometry x="0.2969" y="10" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="724" y="244" />
+            </Array>
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7XFKLlVe6kwbbdnfO9Eq-13" value="Updates Odds" style="curved=1;startArrow=none;endArrow=block;exitX=0.9981878221649485;exitY=0.17506806287591517;entryX=0.26376706932773136;entryY=0.9852941176470589;rounded=0;" edge="1" parent="1" source="7XFKLlVe6kwbbdnfO9Eq-7" target="7XFKLlVe6kwbbdnfO9Eq-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="724" y="183" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

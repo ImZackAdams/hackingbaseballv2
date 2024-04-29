@@ -117,7 +117,177 @@ hackingbaseball/
 │   │   ├── __init__.py           # Imports and blueprint registration for modules
 │   │   ├── prediction/
 │   │   │   ├── __init__.py       # Blueprint for the prediction module
+│   │   │   ├── models.p= SPEC-001: Baseball Game Outcome Prediction and Betting Odds Web App
+:sectnums:
+:toc:
+
+== Background
+
+This project is conceived as a brand-new venture aimed at creating an MVP web application that provides predictive outcomes for baseball games coupled with real-time betting odds comparison across various sportsbooks. The application is designed to start small with scalable architecture, utilizing Flask and scikit-learn for predictive modeling, and Bootstrap for the front-end.
+
+== Requirements
+
+The web application’s requirements are organized using the MoSCoW method:
+
+*Must have:*
+- A predictive model for baseball game outcomes.
+- A payment processing system to handle transactions.
+- Immediate display of predictions and odds after payment.
+
+*Should have:*
+- Real-time retrieval of betting odds.
+- User privacy and transaction security measures.
+
+*Could have:*
+- Responsive front-end for various devices.
+- Admin panel for schedule and transaction management.
+
+*Won’t have for now:*
+- User account registration and login.
+- Advanced analytics of user predictions.
+
+== Method
+
+=== Architecture Overview
+The application will adopt a Modular Monolithic architecture with distinct modules within a single codebase. This facilitates rapid development, easier maintenance, and effective scaling as needed:
+
+*Front-end*: A responsive SPA built with Bootstrap.
+*Back-end*: Flask serves as the backbone, handling API requests and integrating various modules.
+*Database*: SQLite managed through SQLAlchemy, organized into modular tables for different domains.
+*Modules*: Include Prediction, Payment Processing, Game Management, Odds Comparison, and Result Display.
+
+=== Module Interactions
+Each module has specific roles and interacts with others to ensure a seamless flow of data and functionality:
+
+- **Prediction Module**: Handles all machine learning predictions. Interacts with the Game Management Module to obtain necessary game data and sends prediction results to the Result Display Module.
+- **Payment Processing Module**: Manages financial transactions. Notifies the Result Display Module upon successful payment to trigger the display of predictions and odds.
+- **Game Management Module**: Manages game-related data. Provides necessary details to the Prediction Module for generating accurate predictions.
+- **Odds Comparison Module**: Fetches and compares betting odds from various sportsbooks. Supplies updated odds information to the Result Display Module for display alongside predictions.
+- **Result Display Module**: Controls the user interface elements for presenting results. Receives data from both the Prediction and Odds Comparison Modules to display to users post-payment.
+
+=== Detailed Module Descriptions
+Each module’s responsibilities and interactions are defined to clarify their roles within the system:
+
+*Prediction Module*:
+- Fetches game data from the Game Management Module.
+- Utilizes machine learning algorithms to predict outcomes.
+- Sends predictions to the Result Display Module for user display.
+
+*Payment Processing Module*:
+- Integrates with Stripe to process user transactions securely.
+- Upon successful payment, signals the Result Display Module to update the user interface with results.
+
+*Game Management Module*:
+- Maintains schedules and details of baseball games.
+- Provides the Prediction Module with required data for analysis.
+
+*Odds Comparison Module*:
+- Regularly updates odds from multiple sportsbooks.
+- Provides current odds to the Result Display Module for display.
+
+*Result Display Module*:
+- Receives predictions and odds data.
+- Displays this information dynamically on the user interface following a successful payment.
+
+...
+
+== Implementation
+
+=== Development Strategy
+To ensure timely delivery within the 8-week timeframe, the development strategy emphasizes parallel module development, continuous integration, and automated testing:
+
+1. **Core Module Development**: Priority development of the Prediction and Payment Processing modules.
+2. **Front-End Development**: Concurrent development of the user interface to align with backend progress.
+3. **Integration and Testing**: Continuous integration of all components, with extensive automated testing to ensure system integrity and performance.
+
+=== Milestones
+
+Milestone 1: **Core Backend and Payment Integration**
+- Set up the environment and develop the core Prediction and Payment modules.
+- Deadline: 2 weeks from project start.
+
+Milestone 2: **Front-End Development and Module Integration**
+- Develop the Front-End Module and integrate with backend services.
+- Initiate development on the Game Management and Odds Comparison modules.
+- Deadline: 4 weeks from project start.
+
+Milestone 3: **Complete System Integration and Testing**
+- Integrate all modules and perform comprehensive system testing.
+- Deadline: 6 weeks from project start.
+
+Milestone 4: **Deployment and Launch**
+- Conduct final adjustments based on test feedback.
+- Deploy the application to the production environment.
+- Officially launch the application to the public.
+- Deadline: 8 weeks from project start.
+
+
+== Directory Structure
+
+[source,asciidoc]
+----
+hackingbaseball/
+│
+├── app/                          # Application code
+│   ├── __init__.py               # Initialize the Flask app, register blueprints
+│   ├── config.py                 # Configuration settings for the Flask app
+│   │
+│   ├── modules/                  # Directory for all modular components of the application
+│   │   ├── __init__.py           # Imports and blueprint registration for modules
+│   │   ├── prediction/
+│   │   │   ├── __init__.py       # Blueprint for the prediction module
 │   │   │   ├── models.py         # Database models related to predictions
+│   │   │   ├── routes.py         # Routes specific to prediction functionality
+│   │   │   └── utils.py          # Utility functions for prediction operations
+│   │   │
+│   │   ├── payment/
+│   │   │   ├── __init__.py       # Blueprint for the payment module
+│   │   │   ├── models.py         # Payment related database models
+│   │   │   ├── routes.py         # Payment processing routes
+│   │   │   └── utils.py          # Payment utility functions
+│   │   │
+│   │   ├── game_management/
+│   │   │   ├── __init__.py       # Blueprint for game management module
+│   │   │   ├── models.py         # Game management models
+│   │   │   ├── routes.py         # Routes for managing game data
+│   │   │   └── utils.py          # Utilities for game data manipulation
+│   │   │
+│   │   ├── odds_comparison/
+│   │   │   ├── __init__.py       # Blueprint for the odds comparison module
+│   │   │   ├── models.py         # Models for odds data
+│   │   │   ├── routes.py         # Routes for odds fetching and comparison
+│   │   │   └── utils.py          # Utility functions for odds comparison
+│   │   │
+│   │   └── result_display/
+│   │       ├── __init__.py       # Blueprint for result display module
+│   │       ├── models.py         # Models for storing display data
+│   │       ├── routes.py         # Routes for rendering results
+│   │       └── utils.py          # Utility functions for data display
+│   │
+│   ├── static/                   # Static files like CSS, JS, and images
+│   │   ├── css/                  # CSS files
+│   │   ├── js/                   # JavaScript files
+│   │   └── images/               # Image files
+│   │
+│   └── templates/                # Templates for rendering views
+│       ├── layout.html           # Base layout
+│       └── view.html             # Specific views for modules
+│
+├── migrations/                   # Database migrations
+│   └── versions/                 # Migration scripts
+│
+├── tests/                        # Test suite for the application
+│   ├── __init__.py               # Initialize testing setup
+│   ├── test_prediction.py        # Tests for prediction module
+│   ├── test_payment.py           # Tests for payment module
+│   └── test_game_management.py   # Tests for game management
+│
+├── venv/                         # Virtual environment for dependencies
+├── requirements.txt              # Project dependencies
+├── run.py                        # Script to run the Flask application
+└── README.md                     # Project documentation
+
+y         # Database models related to predictions
 │   │   │   ├── routes.py         # Routes specific to prediction functionality
 │   │   │   └── utils.py          # Utility functions for prediction operations
 │   │   │
