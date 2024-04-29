@@ -55,6 +55,7 @@ def get_or_update_schedules(year):
     schedules.to_json(cache_file, date_format='iso')
     return schedules
 
+
 def get_team_roster(team_id):
     url = f"https://statsapi.mlb.com/api/v1/teams/{team_id}/roster"
     try:
@@ -78,7 +79,8 @@ def get_team_roster(team_id):
         print(f"Error: {e}")
     return None
 
-# Example usage
+
+#Example usage
 team_id = 147  # Example for New York Yankees
 roster = get_team_roster(team_id)
 for player in roster:
