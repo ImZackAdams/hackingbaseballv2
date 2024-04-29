@@ -14,7 +14,7 @@ engine = create_engine('sqlite:///baseball_data.db')
 # df = pd.read_sql("SELECT * FROM statcast_data", engine)  # Replace your_table_name with the actual table name
 
 
-query = "SELECT * FROM statcast_data LIMIT 1000000"
+query = "SELECT * FROM statcast_data LIMIT 1000"
 df = pd.read_sql(query, engine)
 
 # Create binary flags for hits and walks
