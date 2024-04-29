@@ -1,5 +1,5 @@
 
-#from app import db
+from app import db
 import datetime
 
 class Team(db.Model):

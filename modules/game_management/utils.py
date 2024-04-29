@@ -79,7 +79,7 @@ def get_team_roster(team_id):
     return None
 
 # Example usage
-team_id = 147  # Example for New York Yankees
-roster = get_team_roster(team_id)
-for player in roster:
-    print(player['name'], "-", player['position'], "-" ,player['id'])
+# team_id = 147  # Example for New York Yankees
+# roster = get_team_roster(team_id)
+# for player in roster:
+#     print(player['name'], "-", player['position'], "-" ,player['id'])
