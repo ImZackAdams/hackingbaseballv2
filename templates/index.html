@@ -74,8 +74,9 @@
         <ul class="list-group">
     {% for game in games %}
     <li class="list-group-item">
-        {{ game.away_team }} at {{ game.home_team }} - {{ game.game_date.strftime('%B %d, %Y') }}
-    </li>
+    {{ game.away_team }} at {{ game.home_team }} - {{ game.formatted_date }}
+</li>
+
     {% endfor %}
 </ul>
     </div>
