@@ -1,6 +1,6 @@
-
 from app import db
 import datetime
+
 
 class Team(db.Model):
     __tablename__ = 'teams'
@@ -16,6 +16,7 @@ class Team(db.Model):
 
     def __repr__(self):
         return f'<Team {self.name}>'
+
 
 class Game(db.Model):
     __tablename__ = 'games'
