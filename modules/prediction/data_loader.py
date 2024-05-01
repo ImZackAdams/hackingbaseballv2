@@ -4,6 +4,8 @@ import sqlite3
 from datetime import timedelta, date
 import time
 
+data = statcast(start_dt='2020-04-01', end_dt='2020-04-02')
+print(data.head())
 
 def daterange(start_date, end_date):
     for n in range(int((end_date - start_date).days) + 1):
