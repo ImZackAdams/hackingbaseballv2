@@ -1,5 +1,6 @@
 from flask import Blueprint
 
 # Creating a Blueprint for the results display module
-results = Blueprint('results', __name__)
+results = Blueprint('results', __name__, template_folder='templates')
 
+from . import routes
