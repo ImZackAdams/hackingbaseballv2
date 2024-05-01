@@ -1,5 +1,3 @@
-# data/fetch_data.py
-
 from pybaseball import schedule_and_record
 import pandas as pd
 
