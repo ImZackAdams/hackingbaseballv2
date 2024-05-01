@@ -1,9 +1,8 @@
-# File: modules/prediction/matchup_model.py
-
 from sqlalchemy import create_engine
 import pandas as pd
 from modules.prediction.preprocessor import preprocess_data
 from modules.prediction.model import train_model
+
 
 def predict_game_outcome():
     engine = create_engine('sqlite:///baseball_data.db')
