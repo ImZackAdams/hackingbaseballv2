@@ -4,6 +4,8 @@ import sqlite3
 from datetime import timedelta, date
 import time
 
+data = statcast(start_dt='2020-04-01', end_dt='2020-04-02')
+print(data.head())
 
 def daterange(start_date, end_date):
     for n in range(int((end_date - start_date).days) + 1):
@@ -25,19 +27,17 @@ def fetch_data_for_date(single_date, retries=5, wait_time=10):
     return None
 
 
-start_date = date(2020, 4, 1)
-end_date = date(2020, 10, 5)
+def load_data(start_date, end_date):
+    all_data = pd.DataFrame()
 
-all_data = pd.DataFrame()
+    for single_date in daterange(start_date, end_date):
+        print(f"Fetching data for {single_date.strftime('%Y-%m-%d')}")
+        day_data = fetch_data_for_date(single_date)
+        if day_data is not None and not day_data.empty:
+            all_data = pd.concat([all_data, day_data], ignore_index=True)
 
-for single_date in daterange(start_date, end_date):
-    print(f"Fetching data for {single_date.strftime('%Y-%m-%d')}")
-    day_data = fetch_data_for_date(single_date)
-    if day_data is not None and not day_data.empty:
-        all_data = pd.concat([all_data, day_data], ignore_index=True)
+    conn = sqlite3.connect('baseball_data.db')
+    all_data.to_sql('statcast_data', conn, if_exists='replace', index=False)
+    conn.close()
 
-conn = sqlite3.connect('baseball_data.db')
-all_data.to_sql('statcast_data', conn, if_exists='append', index=False)
-conn.close()
-
-print("Data fetching and storage complete.")
+    print("Data fetching and storage complete.")
