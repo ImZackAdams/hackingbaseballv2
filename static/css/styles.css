@@ -48,14 +48,22 @@ body {
 /*  CONTACT */
 
 #contact {
-	margin: 0 auto; 
+	margin: 20px auto; 
 	min-width: 800px;
 }
 
 
+/* BUTTON */
+.btn {
+	border: 2px solid #021f40;
+    border-radius: 10px; 
+    padding: 20px; 
+    background-color: aliceblue; 
+    width: 150px; 
+	margin-bottom: 20px;
+}
 /* FOOTER */
 footer {
-	position: fixed;
 	bottom: 0;
 	left: 0;
 	width: 100%;
