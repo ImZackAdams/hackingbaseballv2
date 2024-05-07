@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- FAVICON -->
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='favicon.ico') }}"
+      type="image/x-icon"
+    />
+    <title>Hacking Baseball</title>
+    <!-- Include Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Custom CSS -->
+    <link
+      href="{{ url_for('static', filename='css/styles.css') }}"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light navbar-custom sticky-top">
+      <div class="container-fluid">
+        <a class="navbar-brand logo" href="#">
+          <img
+            src="{{ url_for('static', filename='logo.png') }}"
+            alt="Logo"
+            class="logo-img"
+          />
+        </a>
+        <div class="brand-name">
+          <a class="navbar-brand" href="#">Hacking Baseball</a>
+        </div>
+        <!-- Hamburger button -->
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="#contact">Contact</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+   <h1> Terms of Service </h1>
+
+    <p>Welcome to Hacking Baseball! These terms outline the rules and regulations for the use of our website. By accessing this website, we assume you accept these terms and conditions. Do not continue to use Hacking Baseball if you do not agree to all of the terms and conditions stated on this page.</p>
+    
+    
+    <h3>Definitions</h3>
+    <ul>
+        <li> "Website" refers to Hacking Baseball.</li>
+        <li>"User," "You," and "Your" refers to you, the person accessing this website.</li>
+        <li>"We," "Us," and "Our" refers to Clipper City DataWorks, the operator of this website.</li>
+        <li>"Content" refers to text, images, videos, or other material found on this website.</li>
+        <li>"Services" refers to the functionality and features offered on this website.
+        </li>
+    </ul>
+ 
+    <h3>Use License</h3>
+    <ul>
+        <li> Permission is granted to temporarily download one copy of the materials (information or software) on Hacking Baseball for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title.</li>
+        <li>Under this license, you may not:</li>
+        <li>Modify or copy the materials.</li>
+        <li>Use the materials for any commercial purpose or for any public display (commercial or non-commercial).</li>
+        <li>Attempt to decompile or reverse engineer any software contained on Hacking Baseball.</li>
+        <li>Remove any copyright or other proprietary notations from the materials.</li>
+    </ul>
+ 
+    <h3>Disclaimer</h3>
+    <ul>
+        <li>The odds and betting information on this website are for entertainment purposes only. We do not guarantee the accuracy, completeness, or timeliness of the information.</li>
+        <li>You use the information provided on this website at your own risk. We shall not be liable for any losses or damages incurred from the use of this website.</li>
+    </ul>
+
+    <h3> User Accounts</h3>
+    <ul>
+        <li>I know we are not doing user accounts but we should have an age thing to get access to it shouldn’t we? I know we are placing bets but still giving out the info to some under 18 might be a no no … Your thoughts?</li>
+        <li>You must be at least 18 years old to create an account on Hacking Baseball. </li>
+        <li>You are responsible for maintaining the confidentiality of your account and password. You agree to accept responsibility for all activities that occur under your account or password.</li>
+    </ul>
+    
+    <h3>Privacy</h3>
+    <ul>
+        <li>Your use of our website is subject to our Privacy Policy. By using this website, you consent to the collection and use of information as described in the Privacy Policy.</li>
+    </ul>
+    
+    <h3>Modifications</h3>
+    <ul>
+        <li>We reserve the right to revise these terms of service at any time without notice. By using this website, you agree to be bound by the current version of these terms of service.</li>
+    </ul>
+    
+    <h3>Governing Law</h3>
+    <ul>
+        <li>These terms and conditions are governed by and construed in accordance with the laws of [Your Jurisdiction] and you irrevocably submit to the exclusive jurisdiction of the courts in that jurisdiction.</li>
+    </ul>
+
+
+    <p>By using Hacking Baseball, you signify your acceptance of these terms. If you do not agree to these terms, please refrain from using our website.</p>
+    
+    <p>If you have any questions about these terms, please contact us at <a href="#contact">Hacking Baseball</a>.</p>
+    
+    
+
+
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="container">
+        <p>
+         &copy; <span id="currentYear"></span> Hacking Baseball | All rights
+            reserved
+        </p>
+      </div>
+    </footer>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"
+    ></script>
+    <!-- Script to update the year dynamically in the footer -->
+    <script>
+      document.getElementById("currentYear").textContent =
+        new Date().getFullYear();
+    </script>
+  </body>
+</html>
