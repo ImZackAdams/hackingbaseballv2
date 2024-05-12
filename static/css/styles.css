@@ -49,6 +49,31 @@ body {
     margin-bottom: 60px; /* Add margin at the bottom to create space */
 }
 
+/* GAMES TABLE */
+.table {
+    width: 100%;
+    /*max-width: 800px;*/
+    margin: 0 auto;
+}
+
+.table th,
+.table td {
+    vertical-align: middle;
+}
+
+.table thead th {
+    background-color: #021f40;
+    color: #f0f8ff;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(2, 31, 64, 0.05);
+}
+
+.text-end {
+    text-align: right;
+}
+
 /*  CONTACT */
 
 #contact {
