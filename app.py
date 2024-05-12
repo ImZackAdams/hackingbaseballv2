@@ -4,6 +4,7 @@ from modules.game_management.routes import game_management
 from modules.result_display import results
 from modules.prediction.game_lineup import predict_game_outcome_from_lineup
 from modules.prediction.model import train_model
+from payment import create_checkout_session
 
 app = Flask(__name__)
 
