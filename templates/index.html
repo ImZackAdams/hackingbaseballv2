@@ -59,7 +59,6 @@
             </div>
         </nav>
 
-<!-- Hero and Games List Section -->
 <section class="games-container">
     <div class="hero-content">
         <p>
@@ -69,13 +68,29 @@
     {% if games %}
     <div>
         <h2>Today's Games</h2>
-        <ul class="list-group">
-            {% for game in games %}
-            <li class="list-group-item">
-                {{ game.away_team }} at {{ game.home_team }} - {{ game.formatted_date }}
-            </li>
-            {% endfor %}
-        </ul>
+        <form id="game-selection-form">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Game</th>
+                        <th>Date</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for game in games %}
+                    <tr>
+                        <td>{{ game.away_team }} at {{ game.home_team }}</td>
+                        <td>{{ game.formatted_date }}</td>
+                        <td class="text-end"><input type="checkbox" name="game_id" value="{{ game.id }}"></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="text-end">
+                <button type="submit" class="btn btn-lg custom-btn btn-block mb-3">Checkout</button>
+            </div>
+        </form>
     </div>
     {% else %}
     <div class="alert alert-info" role="alert">No games scheduled for today.</div>
