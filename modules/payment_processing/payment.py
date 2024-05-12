@@ -21,7 +21,7 @@ def create_checkout_session():
                 'quantity': 1,
             }],
             mode='payment',
-            success_url='http://localhost:5000/success',
+            success_url='http://localhost:5000/results',
             cancel_url='http://localhost:5000/cancel',
         )
         return jsonify({'id': checkout_session.id})
