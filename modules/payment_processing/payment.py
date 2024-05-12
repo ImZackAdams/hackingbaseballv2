@@ -1,7 +1,7 @@
 import stripe
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Blueprint
 
-app = Flask(__name__)
+app = Blueprint('payment', __name__)
 stripe.api_key = 'your_stripe_secret_key'
 
 
@@ -21,7 +21,7 @@ def create_checkout_session():
                 'quantity': 1,
             }],
             mode='payment',
-            success_url='http://localhost:5000/results',
+            success_url='http://localhost:5000/success',
             cancel_url='http://localhost:5000/cancel',
         )
         return jsonify({'id': checkout_session.id})
