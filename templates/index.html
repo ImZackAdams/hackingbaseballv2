@@ -74,6 +74,7 @@
                     <tr>
                         <th>Game</th>
                         <th>Date</th>
+                        <th>Select</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -159,4 +160,20 @@
             document.getElementById("currentYear").textContent = new Date().getFullYear();
         </script>
     </body>
+
+<script>
+    document.getElementById('game-selection-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const selectedGames = Array.from(document.querySelectorAll('input[name="game_id"]:checked')).map(function(checkbox) {
+            return checkbox.value;
+        });
+        if (selectedGames.length > 0) {
+            // TODO: Implement checkout logic, e.g., redirect to checkout page with selected game IDs
+            console.log('Selected Games:', selectedGames);
+            alert('Proceeding to checkout with selected games: ' + selectedGames.join(', '));
+        } else {
+            alert('Please select at least one game to proceed to checkout.');
+        }
+    });
+</script>
 </html>
