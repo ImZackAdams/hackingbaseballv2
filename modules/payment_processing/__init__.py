@@ -29,7 +29,7 @@ def create_checkout_session():
             payment_method_types=['card'],
             line_items=line_items,
             mode='payment',
-            success_url='http://localhost:5000/success',
+            success_url='http://localhost:5000/results',
             cancel_url='http://localhost:5000/cancel',
         )
         return jsonify({'sessionId': checkout_session.id})
