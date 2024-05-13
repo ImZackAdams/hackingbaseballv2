@@ -4,7 +4,7 @@ from modules.game_management.routes import game_management
 from modules.result_display import bp as result_display_bp
 from modules.prediction.game_lineup import predict_game_outcome_from_lineup
 from modules.prediction.model import train_model
-from modules.payment_processing import create_checkout_session, app as payment_bp
+from modules.payment_processing import create_checkout_session, bp as payment_bp
 
 app = Flask(__name__)
 

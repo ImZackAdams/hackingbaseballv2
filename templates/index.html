@@ -20,6 +20,7 @@
             href="{{ url_for('static', filename='css/styles.css') }}"
             rel="stylesheet"
         />
+        <script src="https://js.stripe.com/v3/"></script>
     </head>
     <body>
         <!-- Navbar -->
@@ -59,44 +60,45 @@
             </div>
         </nav>
 
-<section class="games-container">
-    <div class="hero-content">
-        <p>
-            With our AI/ML model tailored for baseball statistics, we can predict the outcome of games with remarkable accuracy. Whether you're a die-hard fan or just curious about the sport, our website provides insights that make it easy to know who's going to win each game.
-        </p>
-    </div>
-    {% if games %}
-    <div>
-        <h2>Today's Games</h2>
-        <form id="game-selection-form">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Game</th>
-                        <th>Date</th>
-                        <th>Select</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for game in games %}
-                    <tr>
-                        <td>{{ game.away_team }} at {{ game.home_team }}</td>
-                        <td>{{ game.formatted_date }}</td>
-                        <td class="text-end"><input type="checkbox" name="game_id" value="{{ game.id }}"></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <div class="text-end">
-                <button type="submit" class="btn btn-lg custom-btn btn-block mb-3">Checkout</button>
+        <!-- Games Container -->
+        <section class="games-container">
+            <div class="hero-content">
+                <p>
+                    With our AI/ML model tailored for baseball statistics, we can predict the outcome of games with remarkable accuracy. Whether you're a die-hard fan or just curious about the sport, our website provides insights that make it easy to know who's going to win each game.
+                </p>
             </div>
-        </form>
-    </div>
-    {% else %}
-    <div class="alert alert-info" role="alert">No games scheduled for today.</div>
-    {% endif %}
-</section>
+            {% if games %}
+            <div>
+                <h2>Today's Games</h2>
+                <form id="game-selection-form">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Game</th>
+                                <th>Date</th>
+                                <th>Select</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for game in games %}
+                            <tr>
+                                <td>{{ game.away_team }} at {{ game.home_team }}</td>
+                                <td>{{ game.formatted_date }}</td>
+                                <td class="text-end"><input type="checkbox" name="game_id" value="{{ game.id }}"></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-lg custom-btn btn-block mb-3">Checkout</button>
+                    </div>
+                </form>
+            </div>
+            {% else %}
+            <div class="alert alert-info" role="alert">No games scheduled for today.</div>
+            {% endif %}
+        </section>
 
         <!-- CONTACT -->
         <section id="contact">
@@ -159,21 +161,37 @@
         <script>
             document.getElementById("currentYear").textContent = new Date().getFullYear();
         </script>
-    </body>
 
-<script>
-    document.getElementById('game-selection-form').addEventListener('submit', function(event) {
-        event.preventDefault();
-        const selectedGames = Array.from(document.querySelectorAll('input[name="game_id"]:checked')).map(function(checkbox) {
-            return checkbox.value;
-        });
-        if (selectedGames.length > 0) {
-            // TODO: Implement checkout logic, e.g., redirect to checkout page with selected game IDs
-            console.log('Selected Games:', selectedGames);
-            alert('Proceeding to checkout with selected games: ' + selectedGames.join(', '));
-        } else {
-            alert('Please select at least one game to proceed to checkout.');
-        }
-    });
-</script>
+        <!-- Script for handling form submission and Stripe integration -->
+        <script>
+            var stripe = Stripe("pk_test_51PG1mPIiIqA6x4U9lNczLfuXAXj3xq1pL72t17AK0fD6ffaKgteH6GN7pdo9KLjZQSmdEhOxyJLY3SAUv0Rb034V00W5JxNclc");
+            document.getElementById('game-selection-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const selectedGames = Array.from(document.querySelectorAll('input[name="game_id"]:checked')).map(function(checkbox) {
+                    return checkbox.value;
+                });
+                if (selectedGames.length > 0) {
+                    // Send the selected game IDs to the server
+                    fetch('/create-checkout-session', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ selectedGames: selectedGames }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Redirect to the Stripe Checkout page
+                        stripe.redirectToCheckout({ sessionId: data.sessionId });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred. Please try again.');
+                    });
+                } else {
+                    alert('Please select at least one game to proceed to checkout.');
+                }
+            });
+        </script>
+    </body>
 </html>
