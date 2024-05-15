@@ -1,197 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <!-- FAVICON -->
-        <link
-            rel="icon"
-            href="{{ url_for('static', filename='favicon.ico') }}"
-            type="image/x-icon"
-        />
-        <title>Hacking Baseball</title>
-        <!-- Include Bootstrap CSS -->
-        <link
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-            rel="stylesheet"
-        />
-        <!-- Custom CSS -->
-        <link
-            href="{{ url_for('static', filename='css/styles.css') }}"
-            rel="stylesheet"
-        />
-        <script src="https://js.stripe.com/v3/"></script>
-    </head>
-    <body>
-        <!-- Navbar -->
-        <nav
-            class="navbar navbar-expand-lg navbar-light navbar-custom sticky-top"
-        >
-            <div class="container-fluid">
-                <a class="navbar-brand logo" href="#">
-                    <img
-                        src="{{ url_for('static', filename='logo.png') }}"
-                        alt="Logo"
-                        class="logo-img"
-                    />
-                </a>
-                <div class="brand-name">
-                    <a class="navbar-brand" href="#">Hacking Baseball</a>
-                </div>
-                <!-- Hamburger button -->
-                <button
-                    class="navbar-toggler"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#navbarNav"
-                    aria-controls="navbarNav"
-                    aria-expanded="false"
-                    aria-label="Toggle navigation"
-                >
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ml-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="#contact">Contact</a>
-                        </li>
-                    </ul>
-                </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <title>Hacking Baseball</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light navbar-custom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand logo" href="#">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo-img">
+            </a>
+            <div class="brand-name">
+                <a class="navbar-brand" href="#">Hacking Baseball</a>
             </div>
-        </nav>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact">Contact</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
-        <!-- Games Container -->
-        <section class="games-container">
-            <div class="hero-content">
-                <p>
-                    With our AI/ML model tailored for baseball statistics, we can predict the outcome of games with remarkable accuracy. Whether you're a die-hard fan or just curious about the sport, our website provides insights that make it easy to know who's going to win each game.
-                </p>
-            </div>
-            {% if games %}
-            <div>
-                <h2>Today's Games</h2>
-                <form id="game-selection-form">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Game</th>
-                                <th>Date</th>
-                                <th>Select</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for game in games %}
-                            <tr>
-                                <td>{{ game.away_team }} at {{ game.home_team }}</td>
-                                <td>{{ game.formatted_date }}</td>
-                                <td class="text-end"><input type="checkbox" name="game_id" value="{{ game.id }}"></td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                    <div class="text-end">
-                        <button type="submit" class="btn btn-lg custom-btn btn-block mb-3">Checkout</button>
-                    </div>
-                </form>
-            </div>
-            {% else %}
-            <div class="alert alert-info" role="alert">No games scheduled for today.</div>
-            {% endif %}
-        </section>
-
-        <!-- CONTACT -->
-        <section id="contact">
-            <form
-                target="_blank"
-                action="https://formsubmit.co/hackingbaseball@gmail.com"
-                method="POST"
-            >
-                <div class="mb-3">
-                    <label for="exampleFormControlInput1" class="form-label">Name</label>
-                    <input
-                        type="text"
-                        name="name"
-                        class="form-control"
-                        id="exampleFormControlInput1"
-                        placeholder="Who are you?"
-                        required
-                    />
+    <section class="games-container">
+        <div class="hero-content">
+            <p>
+                With our AI/ML model tailored for baseball statistics, we can predict the outcome of games with remarkable accuracy. Whether you're a die-hard fan or just curious about the sport, our website provides insights that make it easy to know who's going to win each game.
+            </p>
+        </div>
+        {% if games %}
+        <div>
+            <h2>Today's Games</h2>
+            <form id="game-selection-form">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Game</th>
+                            <th>Date</th>
+                            <th>Select</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for game in games %}
+                        <tr>
+                            <td>{{ game.away_team }} at {{ game.home_team }}</td>
+                            <td>{{ game.formatted_date }}</td>
+                            <td class="text-end"><input type="checkbox" name="game_id" value="{{ loop.index }}"></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="text-end">
+                    <button type="submit" class="btn btn-lg custom-btn btn-block mb-3">Checkout</button>
                 </div>
-                <div class="mb-3">
-                    <label for="exampleFormControlInput1" class="form-label">Email address</label>
-                    <input
-                        type="email"
-                        name="email"
-                        class="form-control"
-                        id="exampleFormControlInput1"
-                        placeholder="name@example.com"
-                        required
-                    />
-                </div>
-                <div class="mb-3">
-                    <label for="exampleFormControlTextarea1" class="form-label">Message</label>
-                    <textarea
-                        class="form-control"
-                        name="message"
-                        id="exampleFormControlTextarea1"
-                        rows="3"
-                        placeholder="Write your message here..."
-                        required
-                    ></textarea>
-                </div>
-                <button type="submit" class="btn btn-lg custom-btn btn-block mb-3">
-                    Send
-                </button>
             </form>
-        </section>
+        </div>
+        {% else %}
+        <div class="alert alert-info" role="alert">No games scheduled for today.</div>
+        {% endif %}
+    </section>
 
-        <!-- FOOTER -->
-        <footer>
-            <div class="container">
-                <p>
-                    <small>&copy; <span id="currentYear"></span> Hacking Baseball | All rights reserved</small>
-                </p>
+    <section id="contact">
+        <form target="_blank" action="https://formsubmit.co/hackingbaseball@gmail.com" method="POST">
+            <div class="mb-3">
+                <label for="exampleFormControlInput1" class="form-label">Name</label>
+                <input type="text" name="name" class="form-control" id="exampleFormControlInput1" placeholder="Who are you?" required>
             </div>
-        </footer>
+            <div class="mb-3">
+                <label for="exampleFormControlInput1" class="form-label">Email address</label>
+                <input type="email" name="email" class="form-control" id="exampleFormControlInput1" placeholder="name@example.com" required>
+            </div>
+            <div class="mb-3">
+                <label for="exampleFormControlTextarea1" class="form-label">Message</label>
+                <textarea class="form-control" name="message" id="exampleFormControlTextarea1" rows="3" placeholder="Write your message here..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-lg custom-btn btn-block mb-3">Send</button>
+        </form>
+    </section>
 
-        <!-- Bootstrap JS and dependencies -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-        <!-- Script to update the year dynamically in the footer -->
-        <script>
-            document.getElementById("currentYear").textContent = new Date().getFullYear();
-        </script>
+    <footer>
+        <div class="container">
+            <p>
+                <small>&copy; <span id="currentYear"></span> Hacking Baseball | All rights reserved</small>
+            </p>
+        </div>
+    </footer>
 
-        <!-- Script for handling form submission and Stripe integration -->
-        <script>
-            var stripe = Stripe("pk_test_51PG1mPIiIqA6x4U9lNczLfuXAXj3xq1pL72t17AK0fD6ffaKgteH6GN7pdo9KLjZQSmdEhOxyJLY3SAUv0Rb034V00W5JxNclc");
-            document.getElementById('game-selection-form').addEventListener('submit', function(event) {
-                event.preventDefault();
-                const selectedGames = Array.from(document.querySelectorAll('input[name="game_id"]:checked')).map(function(checkbox) {
-                    return checkbox.value;
-                });
-                if (selectedGames.length > 0) {
-                    // Send the selected game IDs to the server
-                    fetch('/create-checkout-session', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ selectedGames: selectedGames }),
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        // Redirect to the Stripe Checkout page
-                        stripe.redirectToCheckout({ sessionId: data.sessionId });
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('An error occurred. Please try again.');
-                    });
-                } else {
-                    alert('Please select at least one game to proceed to checkout.');
-                }
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script>
+        document.getElementById("currentYear").textContent = new Date().getFullYear();
+    </script>
+    <script>
+        var stripe = Stripe("pk_test_51PG1mPIiIqA6x4U9lNczLfuXAXj3xq1pL72t17AK0fD6ffaKgteH6GN7pdo9KLjZQSmdEhOxyJLY3SAUv0Rb034V00W5JxNclc");
+        document.getElementById('game-selection-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const selectedGames = Array.from(document.querySelectorAll('input[name="game_id"]:checked')).map(function(checkbox) {
+                return checkbox.value;
             });
-        </script>
-    </body>
+            if (selectedGames.length > 0) {
+                // Send the selected game IDs to the server
+                fetch('/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ selectedGames: selectedGames }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Redirect to the Stripe Checkout page
+                    stripe.redirectToCheckout({ sessionId: data.sessionId });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+            } else {
+                alert('Please select at least one game to proceed to checkout.');
+            }
+        });
+    </script>
+</body>
 </html>
