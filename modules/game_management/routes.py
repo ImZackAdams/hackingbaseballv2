@@ -1,8 +1,9 @@
-from flask import render_template
-from modules.game_management import game_management
-from modules.game_management.utils import get_or_update_schedules
+import pandas as pd
+from flask import Blueprint, render_template
+from .utils import get_or_update_schedules
 from datetime import datetime
 
+game_management = Blueprint('game_management', __name__)
 
 @game_management.route('/')
 def index():
@@ -16,9 +17,10 @@ def index():
     games = []
     for _, row in todays_games.iterrows():
         game = {
+            'id': row['id'],  # Ensure the id is properly added here
             'away_team': row['Opp'],
             'home_team': row['Tm'],
-            'formatted_date': row['Date'].strftime('%Y-%m-%d')
+            'formatted_date': row['Date'].strftime('%Y-%m-%d') if not pd.isnull(row['Date']) else 'Unknown Date'
         }
         games.append(game)
 

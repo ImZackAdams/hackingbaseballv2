@@ -1,70 +1,111 @@
 body {
-	background-color: #f0f8ff;
-	color: #021f40;
-	display: flex; 
-	flex-direction: column; 
-	min-height: 100vh; 
-	margin: 0; 
+    background-color: #f0f8ff;
+    color: #021f40;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
 }
 
 /* NAVBAR */
 
 /* Custom styles*/
 .navbar-custom {
-	background-color: #c20032;
+    background-color: #c20032;
 }
 .navbar-custom .navbar-brand,
 .navbar-custom .navbar-nav .nav-link {
-	color: #f0f8ff;
+    color: #f0f8ff;
 }
 
 /* Push nav links to the right */
 .ml-auto {
-	margin-left: auto !important;
+    margin-left: auto !important;
 }
 
 .navbar-brand {
-	font-size: 24px; 
+    font-size: 24px;
 }
-
 
 /* LOGO */
 .logo-img {
-	height: 50px; 
-	width: 50px; 
+    height: 50px;
+    width: 50px;
 }
 
 .brand-name {
-	margin-left: 20px; 
+    margin-left: 20px;
 }
 
 /* HERO */
 .hero-content, .alert {
-	text-align: center;
-	max-width: 800px;
-	margin: 40px auto;
+    text-align: center;
+    max-width: 800px;
+    margin: 40px auto;
+}
+
+/* GAMES LIST */
+.games-container {
+    margin-bottom: 60px; /* Add margin at the bottom to create space */
+}
+
+/* GAMES TABLE */
+.table {
+    width: 100%;
+    /*max-width: 800px;*/
+   /* margin: 0 auto;*/
+}
+
+.table th,
+.table td {
+    vertical-align: middle;
+}
+
+.table thead th {
+    background-color: #021f40;
+    color: #f0f8ff;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(2, 31, 64, 0.05);
+}
+
+.text-end {
+    text-align: right;
 }
 
 /*  CONTACT */
 
 #contact {
-	margin: 0 auto; 
-	min-width: 800px;
+    margin: 60px auto 0; /* Add margin at the top to create space */
+    min-width: 800px;
+    padding-bottom: 100px;
 }
 
+/* Custom button style */
+.custom-btn {
+    background-color: #c20032;
+    color: #f0f8ff;
+    border-color: #c20032;
+}
+
+.custom-btn:hover {
+    background-color: #021f40;
+    border-color: #021f40;
+}
 
 /* FOOTER */
 footer {
-	position: fixed;
-	bottom: 0;
-	left: 0;
-	width: 100%;
-	text-align: center;
-	padding: 20px 0;
-	background-color: #021f40; 
-	color: #f0f8ff; 
+    position: relative;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    padding: 20px 0;
+    background-color: #021f40;
+    color: #f0f8ff;
+    margin-top: auto;
 }
 
 footer small {
-	font-size: 24px;
+    font-size: 24px;
 }
