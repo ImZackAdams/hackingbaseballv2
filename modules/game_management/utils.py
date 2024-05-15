@@ -1,6 +1,5 @@
 import os
 from datetime import datetime, timedelta
-import requests
 import pandas as pd
 from pybaseball import schedule_and_record
 
@@ -35,9 +34,15 @@ def fetch_and_process_schedules(year):
     unique_games = all_games.drop_duplicates(subset=['unique_id'])
     unique_games = unique_games.drop(columns=['unique_id'])
     unique_games['Date'] = pd.to_datetime(unique_games['Date'], errors='coerce', format='%A, %b %d')
-    unique_games['Date'] = unique_games['Date'].apply(lambda d: d.replace(year=year))
+    unique_games['Date'] = unique_games['Date'].apply(lambda d: d.replace(year=year) if not pd.isnull(d) else d)
     unique_games_sorted = unique_games.sort_values(by='Date', ascending=True)
     unique_games_sorted = unique_games_sorted.reset_index(drop=True)
+
+    # Adding a unique 'id' field for each game
+    unique_games_sorted['id'] = unique_games_sorted.apply(
+        lambda row: f"{row['Tm']}_{row['Opp']}_{row['Date'].strftime('%Y%m%d')}" if not pd.isnull(
+            row['Date']) else None, axis=1
+    )
 
     return unique_games_sorted
 
@@ -48,40 +53,16 @@ def get_or_update_schedules(year):
         modified_time = datetime.fromtimestamp(os.path.getmtime(cache_file))
         if datetime.now() - modified_time < timedelta(days=1):
             with open(cache_file, 'r') as file:
-                return pd.read_json(file, convert_dates=['Date'])
+                schedules = pd.read_json(file, convert_dates=['Date'])
+                # Ensure 'id' column is present
+                if 'id' not in schedules.columns:
+                    schedules['id'] = schedules.apply(
+                        lambda row: f"{row['Tm']}_{row['Opp']}_{row['Date'].strftime('%Y%m%d')}" if not pd.isnull(
+                            row['Date']) else None, axis=1
+                    )
+                return schedules
 
     # If not, fetch, process, and cache the schedules
     schedules = fetch_and_process_schedules(year)
     schedules.to_json(cache_file, date_format='iso')
     return schedules
-
-
-def get_team_roster(team_id):
-    url = f"https://statsapi.mlb.com/api/v1/teams/{team_id}/roster"
-    try:
-        response = requests.get(url)
-        response.raise_for_status()  # Ensure we catch any errors related to the HTTP request
-        roster_data = response.json()
-
-        roster = []
-        for player in roster_data['roster']:
-            player_info = {
-                'id': player['person']['id'],
-                'name': player['person']['fullName'],
-                'position': player['position']['name']
-            }
-            roster.append(player_info)
-
-        return roster
-    except requests.exceptions.HTTPError as e:
-        print(f"HTTP Error: {e}")
-    except requests.exceptions.RequestException as e:
-        print(f"Error: {e}")
-    return None
-
-
-#Example usage
-team_id = 147  # Example for New York Yankees
-roster = get_team_roster(team_id)
-for player in roster:
-    print(player['name'], "-", player['position'], "-" ,player['id'])

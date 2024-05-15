@@ -1,20 +1,26 @@
 from flask import Blueprint, redirect, url_for, request, jsonify, session
 import stripe
+import os
 import logging
 
 payment = Blueprint('payment', __name__)
 
-stripe.api_key = 'sk_test_51PG1mPIiIqA6x4U9hpM7pK01VfggMYuC0vBeNWjX8Y3N8bM9mSEylGSz5LQA9mJUECiMQJpQXCGJ1milmSeCdUSH00ffMMFhAH'
-
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+# Load Stripe keys from environment variables
+stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+public_key = os.getenv('STRIPE_PUBLIC_KEY')
 
 @payment.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
     try:
         data = request.get_json()
         selected_games = data.get('selectedGames', [])
+
+        # Debugging: Print the received game IDs
+        print(f"Received game IDs: {selected_games}")
 
         # Store the selected game IDs in the session
         session['selected_games'] = selected_games
