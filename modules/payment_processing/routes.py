@@ -33,7 +33,7 @@ def create_checkout_session():
             payment_method_types=['card'],
             line_items=line_items,
             mode='payment',
-            success_url=url_for('main.results', _external=True),
+            success_url=url_for('result_display.results', _external=True),
             cancel_url=url_for('game_management.index', _external=True),
         )
 
@@ -41,3 +41,13 @@ def create_checkout_session():
     except Exception as e:
         logger.error(f"Error creating Stripe checkout session: {e}")
         return jsonify({'error': str(e)}), 403
+
+from flask import Blueprint, render_template
+from ..prediction.utils import get_game_predictions
+
+result_display = Blueprint('result_display', __name__)
+
+@result_display.route('/results')
+def results():
+    predictions = get_game_predictions()
+    return render_template('results.html', predictions=predictions)
