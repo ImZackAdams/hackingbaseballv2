@@ -1,11 +1,9 @@
-from flask import Blueprint, render_template
+from flask import Flask, render_template
 
+app = Flask(__name__)
 
-
-bp = Blueprint('result_display', __name__, template_folder='templates')
-
-@bp.route('/success')
-def success():
+@app.route('/')
+def home():
     # Dummy data for testing
     games = [
         {
@@ -24,7 +22,5 @@ def success():
     # Render the results template with the dummy data
     return render_template('results.html', games=games)
 
-
-@bp.route('/test')
-def test():
-    return "This is a test route"
+if __name__ == '__main__':
+    app.run(debug=True)

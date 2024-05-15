@@ -29,17 +29,12 @@ def create_checkout_session():
             payment_method_types=['card'],
             line_items=line_items,
             mode='payment',
-            success_url='http://localhost:5000/results',
-            cancel_url='http://localhost:5000/cancel',
+            success_url='http://localhost:5000/success',
+            cancel_url='http://localhost:5000/payment/cancel',
         )
         return jsonify({'sessionId': checkout_session.id})
     except Exception as e:
         return jsonify({'error': str(e)}), 400
-
-@bp.route('/success')
-def success():
-    # Handle successful payment
-    return render_template('results.html')
 
 @bp.route('/cancel')
 def cancel():
