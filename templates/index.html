@@ -54,7 +54,7 @@
                         <tr>
                             <td>{{ game.away_team }} at {{ game.home_team }}</td>
                             <td>{{ game.formatted_date }}</td>
-                            <td class="text-end"><input type="checkbox" name="game_id" value="{{ loop.index }}"></td>
+                            <td class="text-end"><input type="checkbox" name="game_id" value="{{ game.id }}"></td>
                         </tr>
                         {% endfor %}
                     </tbody>

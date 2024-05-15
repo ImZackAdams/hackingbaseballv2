@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, url_for, request, jsonify, current_app
+from flask import Blueprint, redirect, url_for, request, jsonify, session
 import stripe
 import logging
 
@@ -10,12 +10,14 @@ stripe.api_key = 'sk_test_51PG1mPIiIqA6x4U9hpM7pK01VfggMYuC0vBeNWjX8Y3N8bM9mSEyl
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-
 @payment.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
     try:
         data = request.get_json()
         selected_games = data.get('selectedGames', [])
+
+        # Store the selected game IDs in the session
+        session['selected_games'] = selected_games
 
         # For demonstration purposes, we'll assume each selected game costs $5
         line_items = [{
@@ -29,7 +31,7 @@ def create_checkout_session():
             'quantity': 1,
         } for game_id in selected_games]
 
-        session = stripe.checkout.Session.create(
+        stripe_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=line_items,
             mode='payment',
@@ -37,17 +39,7 @@ def create_checkout_session():
             cancel_url=url_for('game_management.index', _external=True),
         )
 
-        return jsonify({'sessionId': session.id})
+        return jsonify({'sessionId': stripe_session.id})
     except Exception as e:
         logger.error(f"Error creating Stripe checkout session: {e}")
         return jsonify({'error': str(e)}), 403
-
-from flask import Blueprint, render_template
-from ..prediction.utils import get_game_predictions
-
-result_display = Blueprint('result_display', __name__)
-
-@result_display.route('/results')
-def results():
-    predictions = get_game_predictions()
-    return render_template('results.html', predictions=predictions)
