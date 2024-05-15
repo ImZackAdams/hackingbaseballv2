@@ -1,8 +1,8 @@
-from flask import render_template
-from modules.game_management import game_management
-from modules.game_management.utils import get_or_update_schedules
+from flask import Blueprint, render_template
+from .utils import get_or_update_schedules
 from datetime import datetime
 
+game_management = Blueprint('game_management', __name__)
 
 @game_management.route('/')
 def index():
