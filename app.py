@@ -1,10 +1,11 @@
 import os
-from flask import Flask
+from flask import Flask, render_template
 from dotenv import load_dotenv
 from modules.result_display.routes import result_display as result_display
 from modules.payment_processing.routes import payment as payment_processing
 from modules.game_management.routes import game_management as game_management_bp
-from flask import Flask, render_template
+
+
 # Load environment variables from .env file
 load_dotenv()
 
