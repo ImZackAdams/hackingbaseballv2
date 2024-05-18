@@ -10,6 +10,8 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
+app.config['STRIPE_SECRET_KEY'] = os.getenv('STRIPE_SECRET_KEY')
+app.config['STRIPE_PUBLIC_KEY'] = os.getenv('STRIPE_PUBLIC_KEY')
 
 # Register blueprints
 app.register_blueprint(game_management_bp)
