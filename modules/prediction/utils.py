@@ -1,6 +1,7 @@
 import random
 import pandas as pd
 
+
 def get_game_predictions(selected_games):
     # Fetch the current game schedules
     schedules = pd.read_json('game_schedules.json', convert_dates=['Date'])
