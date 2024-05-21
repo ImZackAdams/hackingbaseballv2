@@ -66,3 +66,5 @@ def get_or_update_schedules(year):
     schedules = fetch_and_process_schedules(year)
     schedules.to_json(cache_file, date_format='iso')
     return schedules
+
+

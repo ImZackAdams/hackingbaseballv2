@@ -4,17 +4,29 @@ from dotenv import load_dotenv
 from modules.result_display.routes import result_display as result_display
 from modules.payment_processing.routes import payment as payment_processing
 from modules.game_management.routes import game_management as game_management_bp
-
+from flask import Flask, render_template
 # Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
+app.config['STRIPE_SECRET_KEY'] = os.getenv('STRIPE_SECRET_KEY')
+app.config['STRIPE_PUBLIC_KEY'] = os.getenv('STRIPE_PUBLIC_KEY')
 
 # Register blueprints
 app.register_blueprint(game_management_bp)
 app.register_blueprint(result_display)
 app.register_blueprint(payment_processing)
 
+
+#Footer Terms of Service 
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/terms-of-service')
+def terms_of_service():
+    return render_template('terms_of_service.html')
 if __name__ == '__main__':
+
     app.run(debug=True)
