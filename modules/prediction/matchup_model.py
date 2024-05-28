@@ -64,7 +64,7 @@ def predict_game_outcome(model, pitcher_id, batter_id, is_home):
 
     # Make the prediction
     prediction = model.predict(input_data)
-
+    print(prediction)
     return prediction[0]
 
 
