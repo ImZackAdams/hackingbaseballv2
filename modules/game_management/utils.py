@@ -61,9 +61,8 @@ def get_or_update_schedules(year):
     return schedules
 
 
-def fetch_starting_lineups():
-    today_date = datetime.now().strftime("%Y-%m-%d")
-    url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={today_date}"
+def fetch_starting_lineups(date):
+    url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={date}"
     response = requests.get(url)
     if response.status_code != 200:
         print(f"Failed to fetch schedule data: {response.status_code}")
@@ -102,29 +101,46 @@ def fetch_starting_lineups():
                     lineup_data.append(player_info)
 
     lineups_df = pd.DataFrame(lineup_data)
+    print("Fetched lineups data:")
+    print(lineups_df.head())
+    print(lineups_df.columns.tolist())  # Print columns for verification
     return lineups_df
 
 
-def get_today_schedule_and_lineups(year):
+def get_schedule_and_lineups_for_date(year, date):
     schedules = get_or_update_schedules(year)
-    today = datetime.now().date()
-    today_games = schedules[schedules['Date'].dt.date == today]
+    date_obj = datetime.strptime(date, "%Y-%m-%d").date()
+    games_for_date = schedules[schedules['Date'].dt.date == date_obj]
 
-    if today_games.empty:
-        print("No games scheduled for today.")
+    if games_for_date.empty:
+        print(f"No games scheduled for {date}.")
         return None
 
-    lineups = fetch_starting_lineups()
+    lineups = fetch_starting_lineups(date)
     if lineups is None:
         print("Failed to fetch lineups.")
         return None
 
-    today_games = today_games.merge(lineups, how='left', left_on=['Tm', 'Opp'], right_on=['team', 'team'])
-    return today_games
+    print("Fetched schedules data:")
+    print(games_for_date.head())
+    print(games_for_date.columns.tolist())  # Print columns for verification
+
+    # Print unique team names in the lineups and schedules for debugging
+    print("Unique teams in lineups:")
+    print(lineups['team'].unique())
+    print("Unique teams in schedules:")
+    print(games_for_date['Tm'].unique())
+
+    merged_data = games_for_date.merge(lineups, how='left', left_on=['Tm'], right_on=['team'])
+    print("Merged data:")
+    print(merged_data.head())
+    return merged_data
 
 
 # Usage Example
 year = datetime.now().year
-today_games_and_lineups = get_today_schedule_and_lineups(year)
-if today_games_and_lineups is not None:
-    print(today_games_and_lineups.head())
+# Use yesterday's date for testing
+yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+games_and_lineups = get_schedule_and_lineups_for_date(year, yesterday)
+if games_and_lineups is not None:
+    print(games_and_lineups.head())
