@@ -19,7 +19,6 @@ team_name_to_abbreviation = {
     'Toronto Blue Jays': 'TOR', 'Washington Nationals': 'WSH'
 }
 
-
 def fetch_and_process_schedules(year):
     team_abbreviations = [
         'ARI', 'ATL', 'BAL', 'BOS', 'CHC',
@@ -54,7 +53,6 @@ def fetch_and_process_schedules(year):
 
     return unique_games_sorted
 
-
 def get_or_update_schedules(year):
     if os.path.exists(cache_file):
         modified_time = datetime.fromtimestamp(os.path.getmtime(cache_file))
@@ -71,7 +69,6 @@ def get_or_update_schedules(year):
     schedules = fetch_and_process_schedules(year)
     schedules.to_json(cache_file, date_format='iso')
     return schedules
-
 
 def fetch_starting_lineups(date):
     url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={date}"
@@ -114,11 +111,7 @@ def fetch_starting_lineups(date):
                     lineup_data.append(player_info)
 
     lineups_df = pd.DataFrame(lineup_data)
-    print("Fetched lineups data:")
-    print(lineups_df.head())
-    print(lineups_df.columns.tolist())  # Print columns for verification
     return lineups_df
-
 
 def get_schedule_and_lineups_for_date(year, date):
     schedules = get_or_update_schedules(year)
@@ -134,31 +127,16 @@ def get_schedule_and_lineups_for_date(year, date):
         print("Failed to fetch lineups.")
         return None
 
-    print("Fetched schedules data:")
-    print(games_for_date.head())
-    print(games_for_date.columns.tolist())  # Print columns for verification
-
-    # Print unique team names in the lineups and schedules for debugging
-    print("Unique teams in lineups:")
-    print(lineups['team_abbr'].unique())
-    print("Unique teams in schedules:")
-    print(games_for_date['Tm'].unique())
-
-    # Merge using the team abbreviation
     merged_data = games_for_date.merge(lineups, how='left', left_on=['Tm'], right_on=['team_abbr'])
-    print("Merged data:")
-    print(merged_data.head())
 
     # Filter for the game between BOS and BAL
-    bos_bal_game = merged_data[((merged_data['Tm'] == 'BOS') & (merged_data['Opp'] == 'BAL')) | (
-                (merged_data['Tm'] == 'BAL') & (merged_data['Opp'] == 'BOS'))]
+    bos_bal_game = merged_data[((merged_data['Tm'] == 'BOS') & (merged_data['Opp'] == 'BAL')) | ((merged_data['Tm'] == 'BAL') & (merged_data['Opp'] == 'BOS'))]
     return bos_bal_game
-
 
 # Usage Example
 year = datetime.now().year
 # Use yesterday's date for testing
 yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-games_and_lineups = get_schedule_and_lineups_for_date(year, yesterday)
-if games_and_lineups is not None:
-    print(games_and_lineups)
+bos_bal_game = get_schedule_and_lineups_for_date(year, yesterday)
+if bos_bal_game is not None:
+    print(bos_bal_game[['game_date', 'Tm', 'Opp', 'player_name', 'batting_order']])
