@@ -16,7 +16,7 @@ team_name_to_abbreviation = {
     'Minnesota Twins': 'MIN', 'New York Mets': 'NYM', 'New York Yankees': 'NYY', 'Oakland Athletics': 'OAK',
     'Philadelphia Phillies': 'PHI', 'Pittsburgh Pirates': 'PIT', 'San Diego Padres': 'SD', 'Seattle Mariners': 'SEA',
     'San Francisco Giants': 'SF', 'St. Louis Cardinals': 'STL', 'Tampa Bay Rays': 'TB', 'Texas Rangers': 'TEX',
-    'Toronto Blue Jays': 'TOR', 'Washington Nationals': 'WSH'
+    'Toronto Blue Jays': 'TOR', 'Washington Nationals': 'WSN'
 }
 
 
@@ -27,7 +27,7 @@ def fetch_and_process_schedules(year):
         'HOU', 'KC', 'LAA', 'LAD', 'MIA',
         'MIL', 'MIN', 'NYM', 'NYY', 'OAK',
         'PHI', 'PIT', 'SD', 'SEA', 'SF',
-        'STL', 'TB', 'TEX', 'TOR', 'WSH'
+        'STL', 'TB', 'TEX', 'TOR', 'WSN'
     ]
 
     all_games = pd.DataFrame()
@@ -121,36 +121,21 @@ def fetch_starting_lineups(date):
     return lineups_df
 
 
-def get_schedule_and_lineups_for_date(year, date):
-    schedules = get_or_update_schedules(year)
-    date_obj = datetime.strptime(date, "%Y-%m-%d").date()
-    games_for_date = schedules[schedules['Date'].dt.date == date_obj]
-
-    if games_for_date.empty:
-        print(f"No games scheduled for {date}.")
-        return None
-
-    lineups = fetch_starting_lineups(date)
+def get_today_lineup_for_team(team_abbreviation):
+    today_date = datetime.now().strftime("%Y-%m-%d")
+    lineups = fetch_starting_lineups(today_date)
     if lineups is None:
         print("Failed to fetch lineups.")
         return None
 
-    merged_data = games_for_date.merge(lineups, how='left', left_on=['Tm'], right_on=['team_abbr'])
-
-    # Filter for the game between BOS and BAL
-    bos_bal_game = merged_data[((merged_data['Tm'] == 'BOS') & (merged_data['Opp'] == 'BAL')) | (
-                (merged_data['Tm'] == 'BAL') & (merged_data['Opp'] == 'BOS'))]
-
-    return bos_bal_game
+    # Filter for the specified team's lineup
+    team_lineup = lineups[lineups['team_abbr'] == team_abbreviation]
+    # Filter for starting batting lineup and starting pitchers
+    starting_lineup_and_pitcher = team_lineup[(team_lineup['batting_order'] != '') | (team_lineup['position'] == 'P')]
+    return starting_lineup_and_pitcher
 
 
 # Usage Example
-year = datetime.now().year
-# Use yesterday's date for testing
-yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-bos_bal_game = get_schedule_and_lineups_for_date(year, yesterday)
-if bos_bal_game is not None:
-    # Filter for starting batting lineup and starting pitchers
-    starting_lineup_and_pitcher = bos_bal_game[
-        (bos_bal_game['batting_order'] != '') | (bos_bal_game['position'] == 'P')]
-    print(starting_lineup_and_pitcher[['game_date', 'Tm', 'Opp', 'player_name', 'position', 'batting_order']])
+bal_lineup_today = get_today_lineup_for_team('BAL')
+if bal_lineup_today is not None:
+    print(bal_lineup_today[['game_date', 'team', 'player_name', 'position', 'batting_order']])
