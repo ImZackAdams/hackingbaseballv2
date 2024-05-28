@@ -19,6 +19,7 @@ team_name_to_abbreviation = {
     'Toronto Blue Jays': 'TOR', 'Washington Nationals': 'WSH'
 }
 
+
 def fetch_and_process_schedules(year):
     team_abbreviations = [
         'ARI', 'ATL', 'BAL', 'BOS', 'CHC',
@@ -41,7 +42,7 @@ def fetch_and_process_schedules(year):
     all_games = all_games.dropna(subset=['Date', 'Tm', 'Opp'])
     all_games['unique_id'] = all_games.apply(lambda row: row['Date'] + ''.join(sorted([row['Tm'], row['Opp']])), axis=1)
     unique_games = all_games.drop_duplicates(subset=['unique_id'])
-    unique_games = unique_games.drop(columns=['unique_id'])
+    unique_games = unique_games.drop(columns(['unique_id']))
     unique_games['Date'] = pd.to_datetime(unique_games['Date'], errors='coerce', format='%A, %b %d')
     unique_games['Date'] = unique_games['Date'].apply(lambda d: d.replace(year=year) if not pd.isnull(d) else d)
     unique_games_sorted = unique_games.sort_values(by='Date', ascending=True)
@@ -52,6 +53,7 @@ def fetch_and_process_schedules(year):
     )
 
     return unique_games_sorted
+
 
 def get_or_update_schedules(year):
     if os.path.exists(cache_file):
@@ -69,6 +71,7 @@ def get_or_update_schedules(year):
     schedules = fetch_and_process_schedules(year)
     schedules.to_json(cache_file, date_format='iso')
     return schedules
+
 
 def fetch_starting_lineups(date):
     url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={date}"
@@ -97,8 +100,11 @@ def fetch_starting_lineups(date):
         for team in ['home', 'away']:
             team_info = lineup_info['teams'][team]
             team_name = team_info['team']['name']
+            starting_pitcher_id = team_info['pitchers'][0] if team_info['pitchers'] else None
             for player in team_info['players'].values():
-                if 'battingOrder' in player:
+                player_position = player.get('position', {}).get('abbreviation', '')
+                # Only include players with a batting order or starting pitchers
+                if 'battingOrder' in player or player['person']['id'] == starting_pitcher_id:
                     player_info = {
                         'game_id': game_id,
                         'game_date': game_date,
@@ -106,12 +112,14 @@ def fetch_starting_lineups(date):
                         'team_abbr': team_name_to_abbreviation.get(team_name, None),  # Add abbreviation
                         'player_id': player['person']['id'],
                         'player_name': player['person']['fullName'],
-                        'batting_order': player['battingOrder']
+                        'batting_order': player.get('battingOrder', ''),
+                        'position': player_position
                     }
                     lineup_data.append(player_info)
 
     lineups_df = pd.DataFrame(lineup_data)
     return lineups_df
+
 
 def get_schedule_and_lineups_for_date(year, date):
     schedules = get_or_update_schedules(year)
@@ -130,8 +138,11 @@ def get_schedule_and_lineups_for_date(year, date):
     merged_data = games_for_date.merge(lineups, how='left', left_on=['Tm'], right_on=['team_abbr'])
 
     # Filter for the game between BOS and BAL
-    bos_bal_game = merged_data[((merged_data['Tm'] == 'BOS') & (merged_data['Opp'] == 'BAL')) | ((merged_data['Tm'] == 'BAL') & (merged_data['Opp'] == 'BOS'))]
+    bos_bal_game = merged_data[((merged_data['Tm'] == 'BOS') & (merged_data['Opp'] == 'BAL')) | (
+                (merged_data['Tm'] == 'BAL') & (merged_data['Opp'] == 'BOS'))]
+
     return bos_bal_game
+
 
 # Usage Example
 year = datetime.now().year
@@ -139,4 +150,7 @@ year = datetime.now().year
 yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 bos_bal_game = get_schedule_and_lineups_for_date(year, yesterday)
 if bos_bal_game is not None:
-    print(bos_bal_game[['game_date', 'Tm', 'Opp', 'player_name', 'batting_order']])
+    # Filter for starting batting lineup and starting pitchers
+    starting_lineup_and_pitcher = bos_bal_game[
+        (bos_bal_game['batting_order'] != '') | (bos_bal_game['position'] == 'P')]
+    print(starting_lineup_and_pitcher[['game_date', 'Tm', 'Opp', 'player_name', 'position', 'batting_order']])
