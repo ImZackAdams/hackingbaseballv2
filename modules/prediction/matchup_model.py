@@ -69,20 +69,20 @@ def predict_game_outcome(model, pitcher_id, batter_id, is_home):
 
 
 # Example usage
-if __name__ == '__main__':
-    # Load data for a specific date range
-    start_date = date(2020, 4, 1)
-    end_date = date(2020, 10, 5)
-    load_data(start_date, end_date)
-
-    # Train the model
-    model = train_model()
-
-    # Example prediction
-    pitcher_id = 123456  # Replace with the desired pitcher's ID
-    batter_id = 789012  # Replace with the desired batter's ID
-    is_home = 1  # 1 if the pitcher's team is playing at home, 0 otherwise
-
-    outcome = predict_game_outcome(model, pitcher_id, batter_id, is_home)
-    if outcome is not None:
-        print(f"Predicted game outcome: {'Win' if outcome else 'Loss'}")
+# if __name__ == '__main__':
+#     # Load data for a specific date range
+#     start_date = date(2020, 4, 1)
+#     end_date = date(2020, 10, 5)
+#     load_data(start_date, end_date)
+#
+#     # Train the model
+#     model = train_model()
+#
+#     # Example prediction
+#     pitcher_id = 123456  # Replace with the desired pitcher's ID
+#     batter_id = 789012  # Replace with the desired batter's ID
+#     is_home = 1  # 1 if the pitcher's team is playing at home, 0 otherwise
+#
+#     outcome = predict_game_outcome(model, pitcher_id, batter_id, is_home)
+#     if outcome is not None:
+#         print(f"Predicted game outcome: {'Win' if outcome else 'Loss'}")

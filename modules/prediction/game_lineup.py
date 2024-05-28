@@ -1,7 +1,7 @@
 
 def get_game_lineup(game_id):
     # Retrieve the lineup data for the specified game
-    # You can use web scraping, API calls, or any other method to get the lineup data
+
     # For demonstration purposes, let's assume you have a function that returns the lineup data as a DataFrame
     lineup_data = retrieve_lineup_data(game_id)
 
