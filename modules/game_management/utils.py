@@ -16,7 +16,7 @@ team_name_to_abbreviation = {
     'Minnesota Twins': 'MIN', 'New York Mets': 'NYM', 'New York Yankees': 'NYY', 'Oakland Athletics': 'OAK',
     'Philadelphia Phillies': 'PHI', 'Pittsburgh Pirates': 'PIT', 'San Diego Padres': 'SD', 'Seattle Mariners': 'SEA',
     'San Francisco Giants': 'SF', 'St. Louis Cardinals': 'STL', 'Tampa Bay Rays': 'TB', 'Texas Rangers': 'TEX',
-    'Toronto Blue Jays': 'TOR', 'Washington Nationals': 'WSN'
+    'Toronto Blue Jays': 'TOR', 'Washington Nationals': 'WSH'
 }
 
 
@@ -27,7 +27,7 @@ def fetch_and_process_schedules(year):
         'HOU', 'KC', 'LAA', 'LAD', 'MIA',
         'MIL', 'MIN', 'NYM', 'NYY', 'OAK',
         'PHI', 'PIT', 'SD', 'SEA', 'SF',
-        'STL', 'TB', 'TEX', 'TOR', 'WSN'
+        'STL', 'TB', 'TEX', 'TOR', 'WSH'
     ]
 
     all_games = pd.DataFrame()
@@ -121,21 +121,22 @@ def fetch_starting_lineups(date):
     return lineups_df
 
 
-def get_today_lineup_for_team(team_abbreviation):
+def get_today_lineups_for_teams(team_abbreviations):
     today_date = datetime.now().strftime("%Y-%m-%d")
     lineups = fetch_starting_lineups(today_date)
     if lineups is None:
         print("Failed to fetch lineups.")
         return None
 
-    # Filter for the specified team's lineup
-    team_lineup = lineups[lineups['team_abbr'] == team_abbreviation]
+    # Filter for the specified teams' lineups
+    teams_lineup = lineups[lineups['team_abbr'].isin(team_abbreviations)]
     # Filter for starting batting lineup and starting pitchers
-    starting_lineup_and_pitcher = team_lineup[(team_lineup['batting_order'] != '') | (team_lineup['position'] == 'P')]
+    starting_lineup_and_pitcher = teams_lineup[(teams_lineup['batting_order'] != '') | (teams_lineup['position'] == 'P')]
     return starting_lineup_and_pitcher
 
 
 # Usage Example
-bal_lineup_today = get_today_lineup_for_team('BAL')
-if bal_lineup_today is not None:
-    print(bal_lineup_today[['game_date', 'team', 'player_name', 'position', 'batting_order']])
+teams = ['BOS', 'BAL']
+lineups_today = get_today_lineups_for_teams(teams)
+if lineups_today is not None:
+    print(lineups_today[['game_date', 'team', 'player_name', 'position', 'batting_order']])
