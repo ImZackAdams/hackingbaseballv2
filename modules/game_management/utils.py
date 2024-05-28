@@ -148,7 +148,11 @@ def get_schedule_and_lineups_for_date(year, date):
     merged_data = games_for_date.merge(lineups, how='left', left_on=['Tm'], right_on=['team_abbr'])
     print("Merged data:")
     print(merged_data.head())
-    return merged_data
+
+    # Filter for the game between BOS and BAL
+    bos_bal_game = merged_data[((merged_data['Tm'] == 'BOS') & (merged_data['Opp'] == 'BAL')) | (
+                (merged_data['Tm'] == 'BAL') & (merged_data['Opp'] == 'BOS'))]
+    return bos_bal_game
 
 
 # Usage Example
@@ -157,4 +161,4 @@ year = datetime.now().year
 yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 games_and_lineups = get_schedule_and_lineups_for_date(year, yesterday)
 if games_and_lineups is not None:
-    print(games_and_lineups.head())
+    print(games_and_lineups)
