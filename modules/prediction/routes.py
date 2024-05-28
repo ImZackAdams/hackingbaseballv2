@@ -3,7 +3,7 @@
 from flask import Blueprint, jsonify, request
 from modules.game_management.utils import get_team_roster
 from modules.prediction.game_lineup import predict_game_outcome_from_lineup
-from modules.prediction.model import train_model
+from modules.prediction.matchup_model import train_model
 from modules.result_display.utils import render_results
 
 prediction_bp = Blueprint('prediction', __name__)
