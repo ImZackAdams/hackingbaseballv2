@@ -7,6 +7,18 @@ import requests
 # Define the cache file location
 cache_file = 'game_schedules.json'
 
+# Dictionary to map full team names to abbreviations
+team_name_to_abbreviation = {
+    'Arizona Diamondbacks': 'ARI', 'Atlanta Braves': 'ATL', 'Baltimore Orioles': 'BAL', 'Boston Red Sox': 'BOS',
+    'Chicago Cubs': 'CHC', 'Cincinnati Reds': 'CIN', 'Cleveland Guardians': 'CLE', 'Colorado Rockies': 'COL',
+    'Chicago White Sox': 'CHW', 'Detroit Tigers': 'DET', 'Houston Astros': 'HOU', 'Kansas City Royals': 'KC',
+    'Los Angeles Angels': 'LAA', 'Los Angeles Dodgers': 'LAD', 'Miami Marlins': 'MIA', 'Milwaukee Brewers': 'MIL',
+    'Minnesota Twins': 'MIN', 'New York Mets': 'NYM', 'New York Yankees': 'NYY', 'Oakland Athletics': 'OAK',
+    'Philadelphia Phillies': 'PHI', 'Pittsburgh Pirates': 'PIT', 'San Diego Padres': 'SD', 'Seattle Mariners': 'SEA',
+    'San Francisco Giants': 'SF', 'St. Louis Cardinals': 'STL', 'Tampa Bay Rays': 'TB', 'Texas Rangers': 'TEX',
+    'Toronto Blue Jays': 'TOR', 'Washington Nationals': 'WSH'
+}
+
 
 def fetch_and_process_schedules(year):
     team_abbreviations = [
@@ -15,7 +27,7 @@ def fetch_and_process_schedules(year):
         'HOU', 'KC', 'LAA', 'LAD', 'MIA',
         'MIL', 'MIN', 'NYM', 'NYY', 'OAK',
         'PHI', 'PIT', 'SD', 'SEA', 'SF',
-        'STL', 'TB', 'TEX', 'TOR', 'WSN'
+        'STL', 'TB', 'TEX', 'TOR', 'WSH'
     ]
 
     all_games = pd.DataFrame()
@@ -94,6 +106,7 @@ def fetch_starting_lineups(date):
                         'game_id': game_id,
                         'game_date': game_date,
                         'team': team_name,
+                        'team_abbr': team_name_to_abbreviation.get(team_name, None),  # Add abbreviation
                         'player_id': player['person']['id'],
                         'player_name': player['person']['fullName'],
                         'batting_order': player['battingOrder']
@@ -127,11 +140,12 @@ def get_schedule_and_lineups_for_date(year, date):
 
     # Print unique team names in the lineups and schedules for debugging
     print("Unique teams in lineups:")
-    print(lineups['team'].unique())
+    print(lineups['team_abbr'].unique())
     print("Unique teams in schedules:")
     print(games_for_date['Tm'].unique())
 
-    merged_data = games_for_date.merge(lineups, how='left', left_on=['Tm'], right_on=['team'])
+    # Merge using the team abbreviation
+    merged_data = games_for_date.merge(lineups, how='left', left_on=['Tm'], right_on=['team_abbr'])
     print("Merged data:")
     print(merged_data.head())
     return merged_data
