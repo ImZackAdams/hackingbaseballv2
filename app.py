@@ -14,6 +14,10 @@ app.secret_key = 'your_secret_key'
 app.config['STRIPE_SECRET_KEY'] = os.getenv('STRIPE_SECRET_KEY')
 app.config['STRIPE_PUBLIC_KEY'] = os.getenv('STRIPE_PUBLIC_KEY')
 
+# Check FLASK_DEBUG environment variable to set debug mode
+if os.getenv('FLASK_DEBUG') == '1':
+    app.debug = True
+
 # Register blueprints
 app.register_blueprint(game_management_bp)
 app.register_blueprint(result_display)
