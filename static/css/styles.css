@@ -122,17 +122,27 @@ footer {
   padding: 20px 0;
   background-color: #021f40;
   color: #f0f8ff;
-  margin-top: auto;
+}
+
+footer .container {
+  display: flex;
+  flex-direction: column;
+}
+
+footer .links {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
 }
 
 footer small {
   font-size: 24px;
 }
 
+
 /* Link Styles */
 a {
   color: #f0f8ff; 
-  /* text-decoration: none;  */
 }
 
 a:hover {

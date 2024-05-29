@@ -100,20 +100,22 @@
 
     <footer>
       <div class="container">
-        <p>
-          <a href="{{ url_for('terms_of_service') }}">Terms of Service</a>
-        </p>
-        <p>
-          <a href="{{ url_for('privacy_policy') }}">Privacy Policy</a>
-        </p>
-        <p>
-          <small
-            >&copy; <span id="currentYear"></span> Hacking Baseball | All rights
-            reserved</small
-          >
-        </p>
+        <div class="links">
+          <p>
+            <a href="{{ url_for('terms_of_service') }}">Terms of Service</a>
+          </p>
+          <p>
+            <a href="{{ url_for('privacy_policy') }}">Privacy Policy</a>
+          </p>
+        </div>
+        <div class="copyright">
+          <p>
+            <small>&copy; <span id="currentYear"></span> Hacking Baseball | All rights reserved</small>
+          </p>
+        </div>
       </div>
     </footer>
+    
 
     <script src="{{ url_for('static', filename='javascript/app.js') }}"></script>
 
