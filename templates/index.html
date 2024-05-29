@@ -28,11 +28,13 @@
   <body>
     <header class="header">
       <div>
+        <a href="{{ url_for('index') }}">
         <img
           src="{{ url_for('static', filename='logo.png') }}"
           alt="Logo"
           class="logo_img"
         />
+      </a>
       </div>
       <div class="brand_name">Hacking Baseball</div>
     </header>
