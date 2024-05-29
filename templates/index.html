@@ -37,32 +37,47 @@
       <div class="brand_name">Hacking Baseball</div>
     </header>
 
+    <div class="hero_content">
+      <p>
+        With our AI/ML model tailored for baseball statistics, we can predict
+        the outcome of games with remarkable accuracy. Whether you're a die-hard
+        fan or just curious about the sport, our website provides insights that
+        make it easy to know who's going to win each game.
+      </p>
+    </div>
+
+    <!-- games.html -->
     <section class="games-container">
-      <div class="hero_content">
-        <p>
-          With our AI/ML model tailored for baseball statistics, we can predict
-          the outcome of games with remarkable accuracy. Whether you're a
-          die-hard fan or just curious about the sport, our website provides
-          insights that make it easy to know who's going to win each game.
-        </p>
-      </div>
       {% if games %}
+      <!-- Display games if available -->
       <div>
         <h2>Today's Games</h2>
+        <h2 id="current-date"></h2>
         <form id="game-selection-form">
-          <table class="table">
+          <table class="game-table">
             <thead>
               <tr>
-                <th>Game</th>
-                <th>Date</th>
+                <th>Games</th>
                 <th>Select</th>
               </tr>
             </thead>
             <tbody>
               {% for game in games %}
               <tr>
-                <td>{{ game.away_team }} at {{ game.home_team }}</td>
-                <td>{{ game.formatted_date }}</td>
+                <td class="team-info">
+                  {{ game.away_team }}
+                  <img
+                    src="{{ url_for('static', filename='logos/' + game.away_team + '.png') }}"
+                    alt="{{ game.away_team }} logo"
+                  />
+                  <span class="at">@</span>
+                  {{ game.home_team }}
+                  <img
+                    src="{{ url_for('static', filename='logos/' + game.home_team + '.png') }}"
+                    alt="{{ game.home_team }} logo"
+                  />
+                </td>
+
                 <td class="text-end">
                   <input type="checkbox" name="game_id" value="{{ game.id }}" />
                 </td>
@@ -70,21 +85,18 @@
               {% endfor %}
             </tbody>
           </table>
-          <div class="text-end">
-            <button type="submit" class="btn btn-lg custom-btn btn-block mb-3">
+          <div>
+            <button type="submit" class="custom-btn">
               Checkout
             </button>
           </div>
         </form>
       </div>
       {% else %}
-      <div class="alert alert-info" role="alert">
-        No games scheduled for today.
-      </div>
+      <!-- Display message if no games available -->
+      <div class="alert">No games scheduled for today.</div>
       {% endif %}
     </section>
-
-    
 
     <footer>
       <div class="container">
@@ -113,7 +125,7 @@
         new Date().getFullYear();
     </script>
     <script>
-      var stripe = Stripe(
+      const stripe = Stripe(
         "pk_test_51PG1mPIiIqA6x4U9lNczLfuXAXj3xq1pL72t17AK0fD6ffaKgteH6GN7pdo9KLjZQSmdEhOxyJLY3SAUv0Rb034V00W5JxNclc"
       );
       document
@@ -149,6 +161,22 @@
             alert("Please select at least one game to proceed to checkout.");
           }
         });
+    </script>
+    <script>
+      // Get today's date
+      const today = new Date();
+
+      // Format the date as MM/DD/YYYY
+      const formattedDate =
+        today.getMonth() +
+        1 +
+        "/" +
+        today.getDate() +
+        "/" +
+        today.getFullYear();
+
+      // Set the formatted date to the h2 element
+      document.getElementById("current-date").innerHTML = formattedDate;
     </script>
   </body>
 </html>
