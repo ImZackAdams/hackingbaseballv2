@@ -176,7 +176,7 @@ a:active {
   }
   
   .custom-btn {
-    margin-left: calc(50% - 10px); /* Adjusted centering for very small screens */
+    margin-left: calc(50% - 10px); 
   }
 
   .game-table img {
