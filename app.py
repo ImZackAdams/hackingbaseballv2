@@ -24,7 +24,7 @@ app.register_blueprint(result_display)
 app.register_blueprint(payment_processing)
 
 
-#Footer Terms of Service 
+
 @app.route('/')
 def index():
     return render_template('index.html')
