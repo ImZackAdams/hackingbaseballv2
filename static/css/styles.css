@@ -43,32 +43,72 @@ body {
 
 /* GAMES LIST */
 .games-container {
-  margin-bottom: 60px; /* Add margin at the bottom to create space */
+  margin-bottom: 60px;
+  text-align: center; 
 }
 
 /* GAMES TABLE */
-.table {
+.game-table {
   width: 100%;
-  /* max-width: 800px;
-    margin: 0 auto; */
+  max-width: 800px;
+  margin: 0 auto;
 }
 
-.table th,
-.table td {
+.game-table th,
+.game-table td {
   vertical-align: middle;
+  padding: 30px; 
 }
 
-.table thead th {
+.game-table thead th {
   background-color: #021f40;
   color: #f0f8ff;
 }
 
-.table-striped tbody tr:nth-of-type(odd) {
+.game-table tbody tr:nth-of-type(odd) {
   background-color: rgba(2, 31, 64, 0.05);
 }
 
-.text-end {
-  text-align: right;
+.game-table img {
+  width: 80px; 
+  height: 80px; 
+  margin-right: 10px; 
+}
+
+.game-table td.team-info {
+  padding-right: 20px; /* Adjust the padding to add space between elements */
+}
+
+.at {
+  margin-right: 40px;
+}
+
+.game-table td.team-info img {
+  margin-right: 40px;
+  margin-left: 10px; 
+}
+
+
+/* Checkout Button */
+
+.custom-btn {
+  background-color: #c20032;
+  color: #f0f8ff;
+  border-radius: 5px; 
+  padding: 10px 20px; 
+  font-size: 20px; 
+  cursor: pointer; 
+  transition: background-color 0.3s ease; 
+  margin-top: 20px;
+  margin-left: 650px;
+}
+
+.custom-btn:hover {
+  background-color: #021f40;
+}
+
+.custom-btn:focus {
+  outline: none; 
 }
 
 
