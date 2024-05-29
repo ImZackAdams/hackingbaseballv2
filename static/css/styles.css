@@ -71,25 +71,7 @@ body {
   text-align: right;
 }
 
-/*  CONTACT */
 
-#contact {
-  margin: 60px auto 0; /* Add margin at the top to create space */
-  min-width: 800px;
-  padding-bottom: 100px;
-}
-
-/* Custom button style */
-.custom-btn {
-  background-color: #c20032;
-  color: #f0f8ff;
-  border-color: #c20032;
-}
-
-.custom-btn:hover {
-  background-color: #021f40;
-  border-color: #021f40;
-}
 
 /* FOOTER */
 footer {
