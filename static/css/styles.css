@@ -107,6 +107,23 @@ footer small {
   font-size: 24px;
 }
 
+/* Link Styles */
+a {
+  color: #f0f8ff; 
+  /* text-decoration: none;  */
+}
+
+a:hover {
+  color: #c20032; 
+}
+
+a:active {
+  color: #c20032; 
+}
+
+
+
+
 /* Media Query for Small Screens */
 @media (max-width: 768px) {
   .header {
