@@ -162,19 +162,18 @@
           }
         });
     </script>
-    <script>
+     <script>
       // Get today's date
       const today = new Date();
-
+  
       // Format the date as MM/DD/YYYY
       const formattedDate =
-        today.getMonth() +
-        1 +
+        (today.getMonth() + 1) +
         "/" +
         today.getDate() +
         "/" +
         today.getFullYear();
-
+  
       // Set the formatted date to the h2 element
       document.getElementById("current-date").innerHTML = formattedDate;
     </script>
