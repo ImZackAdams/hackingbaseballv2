@@ -169,4 +169,30 @@ a:active {
   footer small {
     font-size: 12px; 
   }
+
+  .game-table th,
+  .game-table td {
+    padding: 10px; /* Further reduced padding for very small screens */
+  }
+  
+  .custom-btn {
+    margin-left: calc(50% - 10px); /* Adjusted centering for very small screens */
+  }
+
+  .game-table img {
+    width: 50px; 
+    height: 50px; 
+  }
+  .game-table td.team-info {
+    padding-right: 20px; /* Adjust the padding to add space between elements */
+  }
+  
+  .at {
+    margin-right: 10px;
+  }
+  
+  .game-table td.team-info img {
+    margin-right: 10px;
+    margin-left: 10px; 
+  }
 }
