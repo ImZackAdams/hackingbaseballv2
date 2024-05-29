@@ -19,7 +19,6 @@ team_name_to_abbreviation = {
     'Toronto Blue Jays': 'TOR', 'Washington Nationals': 'WSH'
 }
 
-
 def fetch_and_process_schedules(year):
     team_abbreviations = [
         'ARI', 'ATL', 'BAL', 'BOS', 'CHC',
@@ -54,7 +53,6 @@ def fetch_and_process_schedules(year):
 
     return unique_games_sorted
 
-
 def get_or_update_schedules(year):
     if os.path.exists(cache_file):
         modified_time = datetime.fromtimestamp(os.path.getmtime(cache_file))
@@ -71,7 +69,6 @@ def get_or_update_schedules(year):
     schedules = fetch_and_process_schedules(year)
     schedules.to_json(cache_file, date_format='iso')
     return schedules
-
 
 def fetch_starting_lineups(date):
     url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={date}"
@@ -120,23 +117,34 @@ def fetch_starting_lineups(date):
     lineups_df = pd.DataFrame(lineup_data)
     return lineups_df
 
-
-def get_today_lineups_for_teams(team_abbreviations):
-    today_date = datetime.now().strftime("%Y-%m-%d")
-    lineups = fetch_starting_lineups(today_date)
+def get_yesterday_lineups_for_teams(team_abbreviations):
+    yesterday_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+    lineups = fetch_starting_lineups(yesterday_date)
     if lineups is None:
         print("Failed to fetch lineups.")
         return None
 
+    # Ensure 'team_abbr' column is present
+    if 'team_abbr' not in lineups.columns:
+        lineups['team_abbr'] = lineups['team'].map(team_name_to_abbreviation)
+
+    print("Lineups DataFrame before filtering:", lineups)  # Debug statement
+
     # Filter for the specified teams' lineups
     teams_lineup = lineups[lineups['team_abbr'].isin(team_abbreviations)]
+
+    print("Lineups DataFrame after filtering for teams:", teams_lineup)  # Debug statement
+
     # Filter for starting batting lineup and starting pitchers
     starting_lineup_and_pitcher = teams_lineup[(teams_lineup['batting_order'] != '') | (teams_lineup['position'] == 'P')]
+
+    print("Lineups DataFrame after filtering for starting lineup and pitcher:", starting_lineup_and_pitcher)  # Debug statement
+
     return starting_lineup_and_pitcher
 
-
 # Usage Example
-teams = ['BOS', 'BAL']
-lineups_today = get_today_lineups_for_teams(teams)
-if lineups_today is not None:
-    print(lineups_today[['game_date', 'team', 'player_name', 'position', 'batting_order']])
+if __name__ == "__main__":
+    teams = ['BOS', 'BAL']
+    lineups_yesterday = get_yesterday_lineups_for_teams(teams)
+    if lineups_yesterday is not None:
+        print(lineups_yesterday[['game_date', 'team', 'player_name', 'position', 'batting_order']])
