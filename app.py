@@ -32,4 +32,6 @@ def terms_of_service():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Use FLASK_DEBUG environment variable to set the debug mode
+    debug_mode = os.getenv('FLASK_DEBUG', '0') == '1'
+    app.run(debug=debug_mode)
