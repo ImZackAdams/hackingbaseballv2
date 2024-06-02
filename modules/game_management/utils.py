@@ -142,7 +142,8 @@ def get_yesterday_lineups_for_teams(team_abbreviations):
 
     return starting_lineup_and_pitcher
 
-# Usage Example
+
+# Test case
 if __name__ == "__main__":
     teams = ['BOS', 'BAL']
     lineups_yesterday = get_yesterday_lineups_for_teams(teams)
