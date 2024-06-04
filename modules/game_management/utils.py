@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 from pybaseball import schedule_and_record
 import requests
+import numpy as np
 
 # Define the cache file location
 cache_file = 'game_schedules.json'
@@ -16,8 +17,9 @@ team_name_to_abbreviation = {
     'Minnesota Twins': 'MIN', 'New York Mets': 'NYM', 'New York Yankees': 'NYY', 'Oakland Athletics': 'OAK',
     'Philadelphia Phillies': 'PHI', 'Pittsburgh Pirates': 'PIT', 'San Diego Padres': 'SD', 'Seattle Mariners': 'SEA',
     'San Francisco Giants': 'SF', 'St. Louis Cardinals': 'STL', 'Tampa Bay Rays': 'TB', 'Texas Rangers': 'TEX',
-    'Toronto Blue Jays': 'TOR', 'Washington Nationals': 'WSH'
+    'Toronto Blue Jays': 'TOR', 'Washington Nationals': 'WSN'
 }
+
 
 def fetch_and_process_schedules(year):
     team_abbreviations = [
@@ -26,7 +28,7 @@ def fetch_and_process_schedules(year):
         'HOU', 'KC', 'LAA', 'LAD', 'MIA',
         'MIL', 'MIN', 'NYM', 'NYY', 'OAK',
         'PHI', 'PIT', 'SD', 'SEA', 'SF',
-        'STL', 'TB', 'TEX', 'TOR', 'WSH'
+        'STL', 'TB', 'TEX', 'TOR', 'WSN'
     ]
 
     all_games = pd.DataFrame()
@@ -41,7 +43,7 @@ def fetch_and_process_schedules(year):
     all_games = all_games.dropna(subset=['Date', 'Tm', 'Opp'])
     all_games['unique_id'] = all_games.apply(lambda row: row['Date'] + ''.join(sorted([row['Tm'], row['Opp']])), axis=1)
     unique_games = all_games.drop_duplicates(subset=['unique_id'])
-    unique_games = unique_games.drop(columns(['unique_id']))
+    unique_games = unique_games.drop(columns=['unique_id'])
     unique_games['Date'] = pd.to_datetime(unique_games['Date'], errors='coerce', format='%A, %b %d')
     unique_games['Date'] = unique_games['Date'].apply(lambda d: d.replace(year=year) if not pd.isnull(d) else d)
     unique_games_sorted = unique_games.sort_values(by='Date', ascending=True)
@@ -50,8 +52,11 @@ def fetch_and_process_schedules(year):
         lambda row: f"{row['Tm']}_{row['Opp']}_{row['Date'].strftime('%Y%m%d')}" if not pd.isnull(
             row['Date']) else None, axis=1
     )
+    unique_games_sorted['Attendance'].replace(r'^Unknown$', np.nan, regex=True,
+                                              inplace=True)  # Convert 'Unknown' to NaN
 
     return unique_games_sorted
+
 
 def get_or_update_schedules(year):
     if os.path.exists(cache_file):
@@ -64,11 +69,14 @@ def get_or_update_schedules(year):
                         lambda row: f"{row['Tm']}_{row['Opp']}_{row['Date'].strftime('%Y%m%d')}" if not pd.isnull(
                             row['Date']) else None, axis=1
                     )
+                schedules['Attendance'].replace(r'^Unknown$', np.nan, regex=True,
+                                                inplace=True)  # Convert 'Unknown' to NaN
                 return schedules
 
     schedules = fetch_and_process_schedules(year)
     schedules.to_json(cache_file, date_format='iso')
     return schedules
+
 
 def fetch_starting_lineups(date):
     url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={date}"
@@ -117,6 +125,7 @@ def fetch_starting_lineups(date):
     lineups_df = pd.DataFrame(lineup_data)
     return lineups_df
 
+
 def get_yesterday_lineups_for_teams(team_abbreviations):
     yesterday_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
     lineups = fetch_starting_lineups(yesterday_date)
@@ -136,16 +145,30 @@ def get_yesterday_lineups_for_teams(team_abbreviations):
     print("Lineups DataFrame after filtering for teams:", teams_lineup)  # Debug statement
 
     # Filter for starting batting lineup and starting pitchers
-    starting_lineup_and_pitcher = teams_lineup[(teams_lineup['batting_order'] != '') | (teams_lineup['position'] == 'P')]
+    starting_lineup_and_pitcher = teams_lineup[
+        (teams_lineup['batting_order'] != '') | (teams_lineup['position'] == 'P')]
 
-    print("Lineups DataFrame after filtering for starting lineup and pitcher:", starting_lineup_and_pitcher)  # Debug statement
+    print("Lineups DataFrame after filtering for starting lineup and pitcher:",
+          starting_lineup_and_pitcher)  # Debug statement
 
     return starting_lineup_and_pitcher
 
 
 # Test case
-if __name__ == "__main__":
-    teams = ['BOS', 'BAL']
-    lineups_yesterday = get_yesterday_lineups_for_teams(teams)
-    if lineups_yesterday is not None:
-        print(lineups_yesterday[['game_date', 'team', 'player_name', 'position', 'batting_order']])
+# if __name__ == "__main__":
+#     teams = ['BOS', 'BAL']
+#     lineups_yesterday = get_yesterday_lineups_for_teams(teams)
+#     if lineups_yesterday is not None:
+#         print(lineups_yesterday[['game_date', 'team', 'player_name', 'position', 'batting_order']])
+
+
+def get_today_lineups_for_all_teams():
+    today_date = datetime.now().strftime("%Y-%m-%d")
+    lineups = fetch_starting_lineups(today_date)
+    if lineups is None:
+        print("Failed to fetch lineups.")
+        return None
+
+    starting_lineup_and_pitcher = lineups[(lineups['batting_order'] != '') | (lineups['position'] == 'P')]
+
+    return starting_lineup_and_pitcher
