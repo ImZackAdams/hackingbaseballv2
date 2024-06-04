@@ -126,32 +126,32 @@ def fetch_starting_lineups(date):
     return lineups_df
 
 
-def get_yesterday_lineups_for_teams(team_abbreviations):
-    yesterday_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-    lineups = fetch_starting_lineups(yesterday_date)
-    if lineups is None:
-        print("Failed to fetch lineups.")
-        return None
-
-    # Ensure 'team_abbr' column is present
-    if 'team_abbr' not in lineups.columns:
-        lineups['team_abbr'] = lineups['team'].map(team_name_to_abbreviation)
-
-    print("Lineups DataFrame before filtering:", lineups)  # Debug statement
-
-    # Filter for the specified teams' lineups
-    teams_lineup = lineups[lineups['team_abbr'].isin(team_abbreviations)]
-
-    print("Lineups DataFrame after filtering for teams:", teams_lineup)  # Debug statement
-
-    # Filter for starting batting lineup and starting pitchers
-    starting_lineup_and_pitcher = teams_lineup[
-        (teams_lineup['batting_order'] != '') | (teams_lineup['position'] == 'P')]
-
-    print("Lineups DataFrame after filtering for starting lineup and pitcher:",
-          starting_lineup_and_pitcher)  # Debug statement
-
-    return starting_lineup_and_pitcher
+# def get_yesterday_lineups_for_teams(team_abbreviations):
+#     yesterday_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+#     lineups = fetch_starting_lineups(yesterday_date)
+#     if lineups is None:
+#         print("Failed to fetch lineups.")
+#         return None
+#
+#     # Ensure 'team_abbr' column is present
+#     if 'team_abbr' not in lineups.columns:
+#         lineups['team_abbr'] = lineups['team'].map(team_name_to_abbreviation)
+#
+#     print("Lineups DataFrame before filtering:", lineups)  # Debug statement
+#
+#     # Filter for the specified teams' lineups
+#     teams_lineup = lineups[lineups['team_abbr'].isin(team_abbreviations)]
+#
+#     print("Lineups DataFrame after filtering for teams:", teams_lineup)  # Debug statement
+#
+#     # Filter for starting batting lineup and starting pitchers
+#     starting_lineup_and_pitcher = teams_lineup[
+#         (teams_lineup['batting_order'] != '') | (teams_lineup['position'] == 'P')]
+#
+#     print("Lineups DataFrame after filtering for starting lineup and pitcher:",
+#           starting_lineup_and_pitcher)  # Debug statement
+#
+#     return starting_lineup_and_pitcher
 
 
 # Test case
