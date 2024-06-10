@@ -126,42 +126,6 @@ def fetch_starting_lineups(date):
     return lineups_df
 
 
-# def get_yesterday_lineups_for_teams(team_abbreviations):
-#     yesterday_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-#     lineups = fetch_starting_lineups(yesterday_date)
-#     if lineups is None:
-#         print("Failed to fetch lineups.")
-#         return None
-#
-#     # Ensure 'team_abbr' column is present
-#     if 'team_abbr' not in lineups.columns:
-#         lineups['team_abbr'] = lineups['team'].map(team_name_to_abbreviation)
-#
-#     print("Lineups DataFrame before filtering:", lineups)  # Debug statement
-#
-#     # Filter for the specified teams' lineups
-#     teams_lineup = lineups[lineups['team_abbr'].isin(team_abbreviations)]
-#
-#     print("Lineups DataFrame after filtering for teams:", teams_lineup)  # Debug statement
-#
-#     # Filter for starting batting lineup and starting pitchers
-#     starting_lineup_and_pitcher = teams_lineup[
-#         (teams_lineup['batting_order'] != '') | (teams_lineup['position'] == 'P')]
-#
-#     print("Lineups DataFrame after filtering for starting lineup and pitcher:",
-#           starting_lineup_and_pitcher)  # Debug statement
-#
-#     return starting_lineup_and_pitcher
-
-
-# Test case
-# if __name__ == "__main__":
-#     teams = ['BOS', 'BAL']
-#     lineups_yesterday = get_yesterday_lineups_for_teams(teams)
-#     if lineups_yesterday is not None:
-#         print(lineups_yesterday[['game_date', 'team', 'player_name', 'position', 'batting_order']])
-
-
 def get_today_lineups_for_all_teams():
     today_date = datetime.now().strftime("%Y-%m-%d")
     lineups = fetch_starting_lineups(today_date)
@@ -172,3 +136,62 @@ def get_today_lineups_for_all_teams():
     starting_lineup_and_pitcher = lineups[(lineups['batting_order'] != '') | (lineups['position'] == 'P')]
 
     return starting_lineup_and_pitcher
+
+
+def get_today_schedules_and_lineups(year):
+    # Get today's date
+    today_date = datetime.now().strftime("%Y-%m-%d")
+
+    # Fetch schedules
+    schedules = get_or_update_schedules(year)
+
+    # Filter for today's games
+    todays_games = schedules[schedules['Date'] == today_date]
+
+    if todays_games.empty:
+        print("No games scheduled for today.")
+        return None
+
+    # Fetch today's lineups
+    lineups = get_today_lineups_for_all_teams()
+    if lineups is None:
+        print("Failed to fetch lineups.")
+        return None
+
+    # Convert game_date to datetime64[ns] format
+    lineups['game_date'] = pd.to_datetime(lineups['game_date'])
+
+    # Merge schedules with lineups on team and date
+    merged_data = pd.merge(todays_games, lineups, left_on=['Tm', 'Date'], right_on=['team_abbr', 'game_date'],
+                           how='left')
+
+    return merged_data
+
+
+def display_lineups_for_each_game(data):
+    games = data[['Date', 'Tm', 'Opp']].drop_duplicates()
+    for _, game in games.iterrows():
+        date = game['Date']
+        team = game['Tm']
+        opp = game['Opp']
+
+        print(f"Game Date: {date}")
+        print(f"{team} vs {opp}")
+
+        print(f"{team} lineup:")
+        team_lineup = data[(data['Tm'] == team) & (data['Date'] == date)]
+        print(team_lineup[['player_name', 'position', 'batting_order']])
+
+        print(f"\n{opp} lineup:")
+        opp_lineup = data[(data['Opp'] == opp) & (data['Date'] == date)]
+        print(opp_lineup[['player_name', 'position', 'batting_order']])
+
+        print("\n" + "-" * 40 + "\n")
+
+
+# Test case
+if __name__ == "__main__":
+    year = datetime.now().year
+    data = get_today_schedules_and_lineups(year)
+    if data is not None:
+        display_lineups_for_each_game(data)
