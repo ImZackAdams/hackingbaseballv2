@@ -23,7 +23,6 @@ start_date = pd.Timestamp('2023-01-01')
 end_date = pd.Timestamp('2024-06-09')
 filtered_data = data[(data['game_date'] >= start_date) & (data['game_date'] <= end_date)]
 
-
 # Print the first few rows of the data to inspect
 print(data.head())
 
@@ -46,37 +45,51 @@ if 'post_home_score' not in merged_data.columns or 'post_away_score' not in merg
     raise ValueError("Columns 'post_home_score' and 'post_away_score' are required in the data.")
 
 # Aggregate stats for each game by summing the individual player stats
-game_stats = merged_data.groupby(['game_date', 'home_team', 'away_team', 'pitcher']).agg({
-    'strikeouts': 'sum',
-    'walks': 'sum',
-    'hits': 'sum',
-    'home_runs': 'sum',
-    'post_home_score': 'max',
-    'post_away_score': 'max'
-}).reset_index()
+game_stats = merged_data.groupby(['game_date', 'game_pk', 'home_team', 'away_team']).agg(
+    home_score=('post_home_score', 'sum'),
+    away_score=('post_away_score', 'sum'),
+    total_strikeouts=('strikeouts', 'sum'),
+    total_walks=('walks', 'sum'),
+    total_hits=('hits', 'sum'),
+    total_home_runs=('home_runs', 'sum')
+).reset_index()
 
-# Create the target variable
-game_stats['home_team_win'] = (game_stats['post_home_score'] > game_stats['post_away_score']).astype(int)
+# Create a target variable 'result'
+game_stats['result'] = np.where(game_stats['home_score'] > game_stats['away_score'], 1, 0)
 
-# Define features and labels
-features = ['strikeouts', 'walks', 'hits', 'home_runs']
-X = game_stats[features]
-y = game_stats['home_team_win']
+# Select features and target variable
+X = game_stats[['total_strikeouts', 'total_walks', 'total_hits', 'total_home_runs']]
+y = game_stats['result']
 
-# Train/test split
+# Split the data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Train the model
+# Impute missing values
+imputer = SimpleImputer(strategy='mean')
+X_train = imputer.fit_transform(X_train)
+X_test = imputer.transform(X_test)
+
+# Scale the features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Encode the target variable
+encoder = LabelEncoder()
+y_train = encoder.fit_transform(y_train)
+y_test = encoder.transform(y_test)
+
+# Train a RandomForestClassifier
 model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
 
 # Evaluate the model
 y_pred = model.predict(X_test)
 print("Accuracy:", accuracy_score(y_test, y_pred))
-print("Classification Report:\n", classification_report(y_test, y_pred))
+print(classification_report(y_test, y_pred))
 
 # Save the model
-joblib.dump(model, 'baseball_game_predictor.pkl')
-
-# Load the model to ensure it was saved correctly
-loaded_model = joblib.load('baseball_game_predictor.pkl')
+joblib.dump(model, 'baseball_model.pkl')
+joblib.dump(imputer, 'imputer.pkl')
+joblib.dump(scaler, 'scaler.pkl')
+joblib.dump(encoder, 'encoder.pkl')

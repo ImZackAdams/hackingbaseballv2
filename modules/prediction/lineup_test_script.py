@@ -1,64 +1,76 @@
 import requests
-import json
+import joblib
+import pandas as pd
+import numpy as np
+
+# Load the model and preprocessors
+model = joblib.load('baseball_model.pkl')
+imputer = joblib.load('imputer.pkl')
+scaler = joblib.load('scaler.pkl')
+encoder = joblib.load('encoder.pkl')
 
 
 def fetch_schedule(date):
-    schedule_url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={date}"
-    schedule_response = requests.get(schedule_url)
-
-    if schedule_response.status_code == 200:
-        schedule_data = schedule_response.json()
-        games = schedule_data.get('dates', [])[0].get('games', [])
-        return games
-    else:
-        print(f"Failed to fetch schedule data: {schedule_response.status_code}")
-        return None
+    url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={date}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        return data.get('dates', [])[0].get('games', [])
+    return []
 
 
 def fetch_lineup(game_id):
-    lineup_url = f"https://statsapi.mlb.com/api/v1/game/{game_id}/boxscore"
-    lineup_response = requests.get(lineup_url)
-
-    if lineup_response.status_code == 200:
-        lineup_data = lineup_response.json()
-        return lineup_data
-    else:
-        print(f"Failed to fetch lineup for game {game_id}: {lineup_response.status_code}")
-        return None
+    url = f"https://statsapi.mlb.com/api/v1.1/game/{game_id}/feed/live"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        return data.get('liveData', {}).get('boxscore', {}).get('teams', {})
+    return {}
 
 
-def get_starting_pitcher(team_info):
-    if team_info['pitchers']:
-        starting_pitcher_id = team_info['pitchers'][0]  # First pitcher listed is typically the starter
-        starting_pitcher_info = team_info['players'][f'ID{starting_pitcher_id}']
-        starting_pitcher_name = starting_pitcher_info['person']['fullName']
-        return starting_pitcher_name
-    return "N/A"
+def get_starting_pitcher(players):
+    for player_id, player in players.items():
+        if player['position']['abbreviation'] == 'P':
+            return player['person']['fullName'], player['person']['id']
+    return "N/A", "N/A"
 
 
-def print_lineup_data(lineup_data):
-    home_team = lineup_data['teams']['home']['team']['name']
-    away_team = lineup_data['teams']['away']['team']['name']
+def get_lineup(players):
+    lineup = []
+    for player_id, player in players.items():
+        if 'battingOrder' in player:
+            lineup.append({
+                'id': player['person']['id'],
+                'name': player['person']['fullName'],
+                'position': player['position']['abbreviation'],
+                'battingOrder': player['battingOrder']
+            })
+    lineup.sort(key=lambda x: int(x['battingOrder']))
+    return lineup
 
-    print(f"\n{home_team} lineup:")
-    starting_pitcher = get_starting_pitcher(lineup_data['teams']['home'])
-    print(f"Starting Pitcher: {starting_pitcher}")
-    for player_id, player in lineup_data['teams']['home']['players'].items():
-        player_name = player['person']['fullName']
-        player_position = player['position']['abbreviation']
-        batting_order = player.get('battingOrder', 'N/A')
-        if batting_order != 'N/A':
-            print(f"{player_name} - {player_position} - Batting Order: {batting_order}")
 
-    print(f"\n{away_team} lineup:")
-    starting_pitcher = get_starting_pitcher(lineup_data['teams']['away'])
-    print(f"Starting Pitcher: {starting_pitcher}")
-    for player_id, player in lineup_data['teams']['away']['players'].items():
-        player_name = player['person']['fullName']
-        player_position = player['position']['abbreviation']
-        batting_order = player.get('battingOrder', 'N/A')
-        if batting_order != 'N/A':
-            print(f"{player_name} - {player_position} - Batting Order: {batting_order}")
+def print_lineup_data(lineup_data, team_type):
+    team = lineup_data[team_type]
+    team_name = team['team']['name']
+    print(f"\n{team_name} lineup:")
+
+    pitcher_name, pitcher_id = get_starting_pitcher(team['players'])
+    print(f"Starting Pitcher: {pitcher_name} (ID: {pitcher_id})")
+
+    lineup = get_lineup(team['players'])
+    for player in lineup:
+        print(f"{player['name']} (ID: {player['id']}) - {player['position']} - Batting Order: {player['battingOrder']}")
+
+
+def prepare_data_for_prediction(lineup_data):
+    # This function should extract and preprocess features for prediction
+    # For demonstration, we return dummy data
+    return pd.DataFrame({
+        'total_strikeouts': [10],
+        'total_walks': [5],
+        'total_hits': [12],
+        'total_home_runs': [3]
+    })
 
 
 def main():
@@ -75,7 +87,20 @@ def main():
 
             lineup_data = fetch_lineup(game_id)
             if lineup_data:
-                print_lineup_data(lineup_data)
+                print_lineup_data(lineup_data, 'home')
+                print_lineup_data(lineup_data, 'away')
+
+                # Prepare data for prediction
+                X_new = prepare_data_for_prediction(lineup_data)
+
+                # Impute missing values and scale the features
+                X_new = imputer.transform(X_new)
+                X_new = scaler.transform(X_new)
+
+                # Make prediction
+                prediction = model.predict(X_new)
+                result = encoder.inverse_transform(prediction)
+                print(f"Predicted result: {'Home win' if result[0] == 1 else 'Away win'}")
 
 
 if __name__ == "__main__":
