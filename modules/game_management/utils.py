@@ -20,17 +20,9 @@ team_name_to_abbreviation = {
     'Toronto Blue Jays': 'TOR', 'Washington Nationals': 'WSN'
 }
 
-
+# Function to fetch and process schedules
 def fetch_and_process_schedules(year):
-    team_abbreviations = [
-        'ARI', 'ATL', 'BAL', 'BOS', 'CHC',
-        'CIN', 'CLE', 'COL', 'CHW', 'DET',
-        'HOU', 'KC', 'LAA', 'LAD', 'MIA',
-        'MIL', 'MIN', 'NYM', 'NYY', 'OAK',
-        'PHI', 'PIT', 'SD', 'SEA', 'SF',
-        'STL', 'TB', 'TEX', 'TOR', 'WSN'
-    ]
-
+    team_abbreviations = list(team_name_to_abbreviation.values())
     all_games = pd.DataFrame()
 
     for team in team_abbreviations:
@@ -47,17 +39,16 @@ def fetch_and_process_schedules(year):
     unique_games['Date'] = pd.to_datetime(unique_games['Date'], errors='coerce', format='%A, %b %d')
     unique_games['Date'] = unique_games['Date'].apply(lambda d: d.replace(year=year) if not pd.isnull(d) else d)
     unique_games_sorted = unique_games.sort_values(by='Date', ascending=True)
-    unique_games_sorted = unique_games_sorted.reset_index(drop=True)
+    unique_games_sorted = unique_games.reset_index(drop=True)
     unique_games_sorted['id'] = unique_games_sorted.apply(
         lambda row: f"{row['Tm']}_{row['Opp']}_{row['Date'].strftime('%Y%m%d')}" if not pd.isnull(
             row['Date']) else None, axis=1
     )
-    unique_games_sorted['Attendance'].replace(r'^Unknown$', np.nan, regex=True,
-                                              inplace=True)  # Convert 'Unknown' to NaN
+    unique_games_sorted['Attendance'].replace(r'^Unknown$', np.nan, regex=True, inplace=True)
 
     return unique_games_sorted
 
-
+# Function to get or update schedules
 def get_or_update_schedules(year):
     if os.path.exists(cache_file):
         modified_time = datetime.fromtimestamp(os.path.getmtime(cache_file))
@@ -69,15 +60,14 @@ def get_or_update_schedules(year):
                         lambda row: f"{row['Tm']}_{row['Opp']}_{row['Date'].strftime('%Y%m%d')}" if not pd.isnull(
                             row['Date']) else None, axis=1
                     )
-                schedules['Attendance'].replace(r'^Unknown$', np.nan, regex=True,
-                                                inplace=True)  # Convert 'Unknown' to NaN
+                schedules['Attendance'].replace(r'^Unknown$', np.nan, regex=True, inplace=True)
                 return schedules
 
     schedules = fetch_and_process_schedules(year)
     schedules.to_json(cache_file, date_format='iso')
     return schedules
 
-
+# Function to fetch starting lineups
 def fetch_starting_lineups(date):
     url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={date}"
     response = requests.get(url)
@@ -105,16 +95,20 @@ def fetch_starting_lineups(date):
         for team in ['home', 'away']:
             team_info = lineup_info['teams'][team]
             team_name = team_info['team']['name']
+            team_abbr = team_name_to_abbreviation.get(team_name)
+            if not team_abbr:
+                print(f"Warning: No abbreviation found for team {team_name}")
+                continue
+
             starting_pitcher_id = team_info['pitchers'][0] if team_info['pitchers'] else None
             for player in team_info['players'].values():
                 player_position = player.get('position', {}).get('abbreviation', '')
-                # Only include players with a batting order or starting pitchers
                 if 'battingOrder' in player or player['person']['id'] == starting_pitcher_id:
                     player_info = {
                         'game_id': game_id,
                         'game_date': game_date,
                         'team': team_name,
-                        'team_abbr': team_name_to_abbreviation.get(team_name, None),  # Add abbreviation
+                        'team_abbr': team_abbr,
                         'player_id': player['person']['id'],
                         'player_name': player['person']['fullName'],
                         'batting_order': player.get('battingOrder', ''),
@@ -125,7 +119,7 @@ def fetch_starting_lineups(date):
     lineups_df = pd.DataFrame(lineup_data)
     return lineups_df
 
-
+# Function to get today's lineups for all teams
 def get_today_lineups_for_all_teams():
     today_date = datetime.now().strftime("%Y-%m-%d")
     lineups = fetch_starting_lineups(today_date)
@@ -134,64 +128,56 @@ def get_today_lineups_for_all_teams():
         return None
 
     starting_lineup_and_pitcher = lineups[(lineups['batting_order'] != '') | (lineups['position'] == 'P')]
-
     return starting_lineup_and_pitcher
 
-
+# Function to get today's schedules and lineups
 def get_today_schedules_and_lineups(year):
-    # Get today's date
     today_date = datetime.now().strftime("%Y-%m-%d")
-
-    # Fetch schedules
     schedules = get_or_update_schedules(year)
-
-    # Filter for today's games
     todays_games = schedules[schedules['Date'] == today_date]
 
     if todays_games.empty:
         print("No games scheduled for today.")
         return None
 
-    # Fetch today's lineups
     lineups = get_today_lineups_for_all_teams()
     if lineups is None:
         print("Failed to fetch lineups.")
         return None
 
-    # Convert game_date to datetime64[ns] format
     lineups['game_date'] = pd.to_datetime(lineups['game_date'])
 
-    # Merge schedules with lineups on team and date
-    merged_data = pd.merge(todays_games, lineups, left_on=['Tm', 'Date'], right_on=['team_abbr', 'game_date'],
-                           how='left')
+    home_merged = pd.merge(todays_games, lineups, left_on=['Tm', 'Date'], right_on=['team_abbr', 'game_date'],
+                           how='left', suffixes=('', '_home'))
+    away_merged = pd.merge(todays_games, lineups, left_on=['Opp', 'Date'], right_on=['team_abbr', 'game_date'],
+                           how='left', suffixes=('', '_away'))
 
-    return merged_data
+    return home_merged, away_merged
 
-
-def display_lineups_for_each_game(data):
-    games = data[['Date', 'Tm', 'Opp']].drop_duplicates()
+# Function to display lineups for each game
+def display_lineups_for_each_game(home_data, away_data):
+    games = home_data[['Date', 'Tm', 'Opp']].drop_duplicates()
     for _, game in games.iterrows():
         date = game['Date']
-        team = game['Tm']
-        opp = game['Opp']
+        home_team = game['Tm']
+        away_team = game['Opp']
 
         print(f"Game Date: {date}")
-        print(f"{team} vs {opp}")
+        print(f"{home_team} vs {away_team}")
 
-        print(f"{team} lineup:")
-        team_lineup = data[(data['Tm'] == team) & (data['Date'] == date)]
-        print(team_lineup[['player_name', 'position', 'batting_order']])
+        print(f"{home_team} lineup:")
+        home_lineup = home_data[(home_data['Tm'] == home_team) & (home_data['Date'] == date)]
+        print(home_lineup[['player_name', 'position', 'batting_order']])
 
-        print(f"\n{opp} lineup:")
-        opp_lineup = data[(data['Opp'] == opp) & (data['Date'] == date)]
-        print(opp_lineup[['player_name', 'position', 'batting_order']])
+        print(f"\n{away_team} lineup:")
+        away_lineup = away_data[(away_data['Opp'] == away_team) & (away_data['Date'] == date)]
+        print(away_lineup[['player_name', 'position', 'batting_order']])
 
         print("\n" + "-" * 40 + "\n")
-
 
 # Test case
 if __name__ == "__main__":
     year = datetime.now().year
-    data = get_today_schedules_and_lineups(year)
-    if data is not None:
-        display_lineups_for_each_game(data)
+    home_data, away_data = get_today_schedules_and_lineups(year)
+    if home_data is not None and away_data is not None:
+        display_lineups_for_each_game(home_data, away_data)
