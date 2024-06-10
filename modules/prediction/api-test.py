@@ -15,18 +15,6 @@ def fetch_schedule(date):
         return None
 
 
-def find_tbr_game_id(games):
-    for game in games:
-        home_team = game['teams']['home']['team']['name']
-        away_team = game['teams']['away']['team']['name']
-        if 'Tampa Bay Rays' in [home_team, away_team]:
-            game_id = game['gamePk']
-            print(f"Game ID for TBR: {game_id}")
-            return game_id
-    print("Tampa Bay Rays game not found for the given date.")
-    return None
-
-
 def fetch_lineup(game_id):
     lineup_url = f"https://statsapi.mlb.com/api/v1/game/{game_id}/boxscore"
     lineup_response = requests.get(lineup_url)
@@ -40,10 +28,12 @@ def fetch_lineup(game_id):
 
 
 def get_starting_pitcher(team_info):
-    starting_pitcher_id = team_info['pitchers'][0]  # First pitcher listed is typically the starter
-    starting_pitcher_info = team_info['players'][f'ID{starting_pitcher_id}']
-    starting_pitcher_name = starting_pitcher_info['person']['fullName']
-    return starting_pitcher_name
+    if team_info['pitchers']:
+        starting_pitcher_id = team_info['pitchers'][0]  # First pitcher listed is typically the starter
+        starting_pitcher_info = team_info['players'][f'ID{starting_pitcher_id}']
+        starting_pitcher_name = starting_pitcher_info['person']['fullName']
+        return starting_pitcher_name
+    return "N/A"
 
 
 def print_lineup_data(lineup_data):
@@ -76,8 +66,13 @@ def main():
     games = fetch_schedule(date)
 
     if games:
-        game_id = find_tbr_game_id(games)
-        if game_id:
+        for game in games:
+            game_id = game['gamePk']
+            home_team = game['teams']['home']['team']['name']
+            away_team = game['teams']['away']['team']['name']
+            print(f"\nGame ID: {game_id}")
+            print(f"{home_team} vs {away_team}")
+
             lineup_data = fetch_lineup(game_id)
             if lineup_data:
                 print_lineup_data(lineup_data)
