@@ -17,15 +17,6 @@ data = pd.read_sql_query("SELECT * FROM statcast_data", conn)
 # Close the connection
 conn.close()
 
-# Filter data for the date range from 2023-01-01 to 2024-06-09
-data['game_date'] = pd.to_datetime(data['game_date'])
-start_date = pd.Timestamp('2023-01-01')
-end_date = pd.Timestamp('2024-06-09')
-filtered_data = data[(data['game_date'] >= start_date) & (data['game_date'] <= end_date)]
-
-# Print the first few rows of the data to inspect
-print(data.head())
-
 # Calculate historical performance metrics
 pitcher_batter_stats = data.groupby(['pitcher', 'batter']).agg(
     strikeouts=('events', lambda x: (x == 'strikeout').sum()),
@@ -33,9 +24,6 @@ pitcher_batter_stats = data.groupby(['pitcher', 'batter']).agg(
     hits=('events', lambda x: (x == 'single').sum() + (x == 'double').sum() + (x == 'triple').sum() + (x == 'home_run').sum()),
     home_runs=('events', lambda x: (x == 'home_run').sum())
 ).reset_index()
-
-# Print the aggregated stats to inspect
-print(pitcher_batter_stats.head())
 
 # Merge game data with pitcher_batter_stats
 merged_data = data.merge(pitcher_batter_stats, on=['pitcher', 'batter'], how='left')
@@ -45,51 +33,64 @@ if 'post_home_score' not in merged_data.columns or 'post_away_score' not in merg
     raise ValueError("Columns 'post_home_score' and 'post_away_score' are required in the data.")
 
 # Aggregate stats for each game by summing the individual player stats
-game_stats = merged_data.groupby(['game_date', 'game_pk', 'home_team', 'away_team']).agg(
-    home_score=('post_home_score', 'sum'),
-    away_score=('post_away_score', 'sum'),
+game_stats = merged_data.groupby(['game_date', 'home_team', 'away_team', 'pitcher', 'batter']).agg(
     total_strikeouts=('strikeouts', 'sum'),
     total_walks=('walks', 'sum'),
     total_hits=('hits', 'sum'),
-    total_home_runs=('home_runs', 'sum')
+    total_home_runs=('home_runs', 'sum'),
+    home_score=('post_home_score', 'max'),
+    away_score=('post_away_score', 'max')
 ).reset_index()
 
-# Create a target variable 'result'
-game_stats['result'] = np.where(game_stats['home_score'] > game_stats['away_score'], 1, 0)
+# Determine the winner
+game_stats['home_win'] = (game_stats['home_score'] > game_stats['away_score']).astype(int)
 
-# Select features and target variable
-X = game_stats[['total_strikeouts', 'total_walks', 'total_hits', 'total_home_runs']]
-y = game_stats['result']
+# Set pandas to display all columns
+pd.set_option('display.max_columns', None)
 
-# Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# Print out the head of the DataFrame before training
+print("Head of the DataFrame before training:")
+print(game_stats.head())
+
+# Prepare features and labels
+X = game_stats[['total_strikeouts', 'total_walks', 'total_hits', 'total_home_runs', 'pitcher', 'batter']]
+y = game_stats['home_win']
+
+# Encode labels
+encoder = LabelEncoder()
+y_encoded = encoder.fit_transform(y)
+
+# Split the data
+X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, random_state=42, stratify=y_encoded)
+
+# Check data balance
+print("Training set class distribution:", np.bincount(y_train))
+print("Test set class distribution:", np.bincount(y_test))
 
 # Impute missing values
 imputer = SimpleImputer(strategy='mean')
-X_train = imputer.fit_transform(X_train)
-X_test = imputer.transform(X_test)
+X_train_imputed = imputer.fit_transform(X_train)
+X_test_imputed = imputer.transform(X_test)
 
 # Scale the features
 scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
+X_train_scaled = scaler.fit_transform(X_train_imputed)
+X_test_scaled = scaler.transform(X_test_imputed)
 
-# Encode the target variable
-encoder = LabelEncoder()
-y_train = encoder.fit_transform(y_train)
-y_test = encoder.transform(y_test)
-
-# Train a RandomForestClassifier
-model = RandomForestClassifier(n_estimators=100, random_state=42)
-model.fit(X_train, y_train)
+# Train the model
+model = RandomForestClassifier(random_state=42)
+model.fit(X_train_scaled, y_train)
 
 # Evaluate the model
-y_pred = model.predict(X_test)
-print("Accuracy:", accuracy_score(y_test, y_pred))
-print(classification_report(y_test, y_pred))
+y_pred_train = model.predict(X_train_scaled)
+y_pred_test = model.predict(X_test_scaled)
 
-# Save the model
-joblib.dump(model, 'baseball_model.pkl')
+print("Training accuracy:", accuracy_score(y_train, y_pred_train))
+print("Test accuracy:", accuracy_score(y_test, y_pred_test))
+print("Classification report:\n", classification_report(y_test, y_pred_test))
+
+# Save the model and preprocessors
+joblib.dump(model, 'game_outcome_predictor.pkl')
 joblib.dump(imputer, 'imputer.pkl')
 joblib.dump(scaler, 'scaler.pkl')
 joblib.dump(encoder, 'encoder.pkl')

@@ -1,107 +1,63 @@
-import requests
-import joblib
 import pandas as pd
-import numpy as np
+import joblib
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import StandardScaler
 
-# Load the model and preprocessors
-model = joblib.load('baseball_model.pkl')
+# Load the trained model and preprocessors
+model = joblib.load('game_outcome_predictor.pkl')
 imputer = joblib.load('imputer.pkl')
 scaler = joblib.load('scaler.pkl')
 encoder = joblib.load('encoder.pkl')
 
 
-def fetch_schedule(date):
-    url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={date}"
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json()
-        return data.get('dates', [])[0].get('games', [])
-    return []
-
-
-def fetch_lineup(game_id):
-    url = f"https://statsapi.mlb.com/api/v1.1/game/{game_id}/feed/live"
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json()
-        return data.get('liveData', {}).get('boxscore', {}).get('teams', {})
-    return {}
-
-
-def get_starting_pitcher(players):
-    for player_id, player in players.items():
-        if player['position']['abbreviation'] == 'P':
-            return player['person']['fullName'], player['person']['id']
-    return "N/A", "N/A"
-
-
-def get_lineup(players):
-    lineup = []
-    for player_id, player in players.items():
-        if 'battingOrder' in player:
-            lineup.append({
-                'id': player['person']['id'],
-                'name': player['person']['fullName'],
-                'position': player['position']['abbreviation'],
-                'battingOrder': player['battingOrder']
-            })
-    lineup.sort(key=lambda x: int(x['battingOrder']))
-    return lineup
-
-
-def print_lineup_data(lineup_data, team_type):
-    team = lineup_data[team_type]
-    team_name = team['team']['name']
-    print(f"\n{team_name} lineup:")
-
-    pitcher_name, pitcher_id = get_starting_pitcher(team['players'])
-    print(f"Starting Pitcher: {pitcher_name} (ID: {pitcher_id})")
-
-    lineup = get_lineup(team['players'])
-    for player in lineup:
-        print(f"{player['name']} (ID: {player['id']}) - {player['position']} - Batting Order: {player['battingOrder']}")
-
-
-def prepare_data_for_prediction(lineup_data):
-    # This function should extract and preprocess features for prediction
-    # For demonstration, we return dummy data
-    return pd.DataFrame({
-        'total_strikeouts': [10],
-        'total_walks': [5],
-        'total_hits': [12],
-        'total_home_runs': [3]
+# Define a function to predict the outcome for a game
+def predict_game(total_strikeouts, total_walks, total_hits, total_home_runs):
+    # Create a DataFrame for the input features
+    features = pd.DataFrame({
+        'total_strikeouts': [total_strikeouts],
+        'total_walks': [total_walks],
+        'total_hits': [total_hits],
+        'total_home_runs': [total_home_runs]
     })
 
+    # Impute missing values
+    features_imputed = imputer.transform(features)
 
-def main():
-    date = '2024-06-09'  # Set the date you want to test
-    games = fetch_schedule(date)
+    # Scale the features
+    features_scaled = scaler.transform(features_imputed)
 
-    if games:
-        for game in games:
-            game_id = game['gamePk']
-            home_team = game['teams']['home']['team']['name']
-            away_team = game['teams']['away']['team']['name']
-            print(f"\nGame ID: {game_id}")
-            print(f"{home_team} vs {away_team}")
+    # Debug: Print the intermediate steps
+    print("Features before imputation and scaling:", features)
+    print("Features after imputation:", features_imputed)
+    print("Features after scaling:", features_scaled)
 
-            lineup_data = fetch_lineup(game_id)
-            if lineup_data:
-                print_lineup_data(lineup_data, 'home')
-                print_lineup_data(lineup_data, 'away')
+    # Predict the outcome
+    prediction = model.predict(features_scaled)
 
-                # Prepare data for prediction
-                X_new = prepare_data_for_prediction(lineup_data)
+    # Decode the prediction
+    decoded_prediction = encoder.inverse_transform(prediction)
 
-                # Impute missing values and scale the features
-                X_new = imputer.transform(X_new)
-                X_new = scaler.transform(X_new)
-
-                # Make prediction
-                prediction = model.predict(X_new)
-                result = encoder.inverse_transform(prediction)
-                print(f"Predicted result: {'Home win' if result[0] == 1 else 'Away win'}")
+    return decoded_prediction[0]
 
 
-if __name__ == "__main__":
-    main()
+# Example usage
+games = [
+    {
+        'game_id': 745571,
+        'home_team': 'Philadelphia Phillies',
+        'away_team': 'New York Mets',
+        'home_features': [16, 0, 17, 1]
+    },
+    {
+        'game_id': 745003,
+        'home_team': 'Texas Rangers',
+        'away_team': 'San Francisco Giants',
+        'home_features': [17, 0, 14, 2]
+    }
+]
+
+for game in games:
+    home_team_prediction = predict_game(*game['home_features'])
+    print(f"Game ID: {game['game_id']}")
+    print(f"{game['home_team']} vs {game['away_team']}")
+    print(f"Predicted result: {'Home win' if home_team_prediction == 1 else 'Away win'}")
