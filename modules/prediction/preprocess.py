@@ -8,12 +8,13 @@ from sklearn.metrics import accuracy_score, classification_report
 from imblearn.over_sampling import SMOTE
 import joblib
 import numpy as np
+import time
 
 # Connect to the SQLite database
 conn = sqlite3.connect('baseball_data.db')
 
 # Load data into a pandas DataFrame
-data = pd.read_sql_query("SELECT * FROM statcast_data LIMIT 10000", conn)
+data = pd.read_sql_query("SELECT * FROM statcast_data LIMIT 100000", conn)
 
 # Close the connection
 conn.close()
@@ -92,6 +93,10 @@ X_resampled, y_resampled = smote.fit_resample(X_train, y_train)
 # Use TimeSeriesSplit for time series data
 tscv = TimeSeriesSplit(n_splits=5)
 
+# Start the clock time and CPU time
+start_time = time.time()
+start_cpu_time = time.process_time()
+
 # Train a Random Forest Classifier
 clf = RandomForestClassifier()
 param_grid = {
@@ -104,10 +109,22 @@ param_grid = {
 grid_search = GridSearchCV(clf, param_grid, cv=tscv, scoring='accuracy')
 grid_search.fit(X_resampled, y_resampled)
 
+# End the clock time and CPU time
+end_time = time.time()
+end_cpu_time = time.process_time()
+
+# Calculate the elapsed times
+elapsed_time = end_time - start_time
+elapsed_cpu_time = end_cpu_time - start_cpu_time
+
 # Evaluate the model on the separate test set
 y_pred = grid_search.best_estimator_.predict(X_test)
 print("Accuracy:", accuracy_score(y_test, y_pred))
 print("Classification Report:\n", classification_report(y_test, y_pred))
+
+# Display the elapsed times
+print(f"Clock time elapsed: {elapsed_time:.2f} seconds")
+print(f"CPU time elapsed: {elapsed_cpu_time:.2f} seconds")
 
 # Save the model
 joblib.dump(grid_search.best_estimator_, 'baseball_game_outcome_predictor.pkl')
