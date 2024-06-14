@@ -1,63 +1,53 @@
-import pandas as pd
-import joblib
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler
-
-# Load the trained model and preprocessors
-model = joblib.load('game_outcome_predictor.pkl')
-imputer = joblib.load('imputer.pkl')
-scaler = joblib.load('scaler.pkl')
-encoder = joblib.load('encoder.pkl')
+import requests
 
 
-# Define a function to predict the outcome for a game
-def predict_game(total_strikeouts, total_walks, total_hits, total_home_runs):
-    # Create a DataFrame for the input features
-    features = pd.DataFrame({
-        'total_strikeouts': [total_strikeouts],
-        'total_walks': [total_walks],
-        'total_hits': [total_hits],
-        'total_home_runs': [total_home_runs]
-    })
+# Function to get the starting lineup for a specific date
+def get_starting_lineup(date):
+    # MLB API endpoint for the schedule
+    schedule_endpoint = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={date}"
 
-    # Impute missing values
-    features_imputed = imputer.transform(features)
+    # Make the request to the API
+    response = requests.get(schedule_endpoint)
+    data = response.json()
 
-    # Scale the features
-    features_scaled = scaler.transform(features_imputed)
+    # Iterate over the games and get the starting lineups
+    for game in data['dates'][0]['games']:
+        game_id = game['gamePk']
+        lineup_endpoint = f"https://statsapi.mlb.com/api/v1/game/{game_id}/boxscore"
+        lineup_response = requests.get(lineup_endpoint)
+        lineup_data = lineup_response.json()
 
-    # Debug: Print the intermediate steps
-    print("Features before imputation and scaling:", features)
-    print("Features after imputation:", features_imputed)
-    print("Features after scaling:", features_scaled)
+        away_team = game['teams']['away']['team']['name']
+        home_team = game['teams']['home']['team']['name']
 
-    # Predict the outcome
-    prediction = model.predict(features_scaled)
+        print(f"Game: {away_team} at {home_team}")
+        print("Starting Lineups:")
 
-    # Decode the prediction
-    decoded_prediction = encoder.inverse_transform(prediction)
+        # Print away team lineup
+        print(f"Away: {away_team}")
+        starting_pitcher_found = False
+        for player_id, player_info in lineup_data['teams']['away']['players'].items():
+            if 'battingOrder' in player_info:
+                print(
+                    f"{player_info['battingOrder']}: {player_info['person']['fullName']} - {player_info['position']['abbreviation']}")
+            if player_info['position']['abbreviation'] == 'P' and not starting_pitcher_found:
+                print(f"SP: {player_info['person']['fullName']} - {player_info['position']['abbreviation']}")
+                starting_pitcher_found = True
 
-    return decoded_prediction[0]
+        # Print home team lineup
+        print(f"Home: {home_team}")
+        starting_pitcher_found = False
+        for player_id, player_info in lineup_data['teams']['home']['players'].items():
+            if 'battingOrder' in player_info:
+                print(
+                    f"{player_info['battingOrder']}: {player_info['person']['fullName']} - {player_info['position']['abbreviation']}")
+            if player_info['position']['abbreviation'] == 'P' and not starting_pitcher_found:
+                print(f"SP: {player_info['person']['fullName']} - {player_info['position']['abbreviation']}")
+                starting_pitcher_found = True
+
+        print("\n")
 
 
-# Example usage
-games = [
-    {
-        'game_id': 745571,
-        'home_team': 'Philadelphia Phillies',
-        'away_team': 'New York Mets',
-        'home_features': [16, 0, 17, 1]
-    },
-    {
-        'game_id': 745003,
-        'home_team': 'Texas Rangers',
-        'away_team': 'San Francisco Giants',
-        'home_features': [17, 0, 14, 2]
-    }
-]
-
-for game in games:
-    home_team_prediction = predict_game(*game['home_features'])
-    print(f"Game ID: {game['game_id']}")
-    print(f"{game['home_team']} vs {game['away_team']}")
-    print(f"Predicted result: {'Home win' if home_team_prediction == 1 else 'Away win'}")
+# Specify the date for the games
+yesterday = "2024-06-13"
+get_starting_lineup(yesterday)
