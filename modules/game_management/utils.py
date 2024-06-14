@@ -20,6 +20,7 @@ team_name_to_abbreviation = {
     'Toronto Blue Jays': 'TOR', 'Washington Nationals': 'WSN'
 }
 
+
 # Function to fetch and process schedules
 def fetch_and_process_schedules(year):
     team_abbreviations = list(team_name_to_abbreviation.values())
@@ -48,6 +49,7 @@ def fetch_and_process_schedules(year):
 
     return unique_games_sorted
 
+
 # Function to get or update schedules
 def get_or_update_schedules(year):
     if os.path.exists(cache_file):
@@ -66,6 +68,7 @@ def get_or_update_schedules(year):
     schedules = fetch_and_process_schedules(year)
     schedules.to_json(cache_file, date_format='iso')
     return schedules
+
 
 # Function to fetch starting lineups
 def fetch_starting_lineups(date):
@@ -134,7 +137,7 @@ def get_todays_lineups(date):
         print(f"No lineups found for {date}")
         return None
 
-    # Sort by team abbreviation
+    # Sort by team abbreviation and batting order
     lineups_sorted = lineups.sort_values(by=['team_abbr', 'batting_order'])
     return lineups_sorted
 
@@ -150,7 +153,5 @@ if todays_lineups is not None:
     for team_abbr, group in todays_lineups.groupby('team_abbr'):
         print(f"Team: {team_abbr}")
         print("Starting Lineup:")
-        print(group[['player_name', 'position', 'batting_order']])
+        print(group[['player_name', 'position', 'batting_order', 'player_id']])
         print("=" * 50)
-
-# Function to get today's lineups for all teams
