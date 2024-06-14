@@ -21,7 +21,8 @@ conn.close()
 pitcher_batter_stats = data.groupby(['pitcher', 'batter']).agg(
     strikeouts=('events', lambda x: (x == 'strikeout').sum()),
     walks=('events', lambda x: (x == 'walk').sum()),
-    hits=('events', lambda x: (x == 'single').sum() + (x == 'double').sum() + (x == 'triple').sum() + (x == 'home_run').sum()),
+    hits=('events',
+          lambda x: (x == 'single').sum() + (x == 'double').sum() + (x == 'triple').sum() + (x == 'home_run').sum()),
     home_runs=('events', lambda x: (x == 'home_run').sum())
 ).reset_index()
 
@@ -94,3 +95,26 @@ joblib.dump(model, 'game_outcome_predictor.pkl')
 joblib.dump(imputer, 'imputer.pkl')
 joblib.dump(scaler, 'scaler.pkl')
 joblib.dump(encoder, 'encoder.pkl')
+
+
+# Function to preprocess today's lineups
+def preprocess_data(lineups):
+    # Assuming `lineups` is a DataFrame with the necessary columns
+    # Extract relevant features for prediction
+    features = lineups[['player_id', 'team_abbr', 'position', 'batting_order']]
+
+    # Encode categorical variables
+    label_encoders = {}
+    for column in ['team_abbr', 'position', 'batting_order']:
+        le = LabelEncoder()
+        features[column] = le.fit_transform(features[column])
+        label_encoders[column] = le
+
+    # Standardize numerical features
+    scaler = StandardScaler()
+    features[['player_id']] = scaler.fit_transform(features[['player_id']])
+
+    # Aggregate stats for each team (this is a simplified example)
+    team_features = features.groupby('team_abbr').mean().reset_index()
+
+    return team_features
