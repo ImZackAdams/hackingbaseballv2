@@ -1,10 +1,11 @@
 import pandas as pd
 import sqlite3
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.model_selection import train_test_split, GridSearchCV, TimeSeriesSplit
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
+from imblearn.over_sampling import SMOTE
 import joblib
 import numpy as np
 
@@ -12,109 +13,101 @@ import numpy as np
 conn = sqlite3.connect('baseball_data.db')
 
 # Load data into a pandas DataFrame
-data = pd.read_sql_query("SELECT * FROM statcast_data", conn)
+data = pd.read_sql_query("SELECT * FROM statcast_data LIMIT 10000", conn)
 
 # Close the connection
 conn.close()
 
-# Calculate historical performance metrics
-pitcher_batter_stats = data.groupby(['pitcher', 'batter']).agg(
-    strikeouts=('events', lambda x: (x == 'strikeout').sum()),
-    walks=('events', lambda x: (x == 'walk').sum()),
-    hits=('events',
-          lambda x: (x == 'single').sum() + (x == 'double').sum() + (x == 'triple').sum() + (x == 'home_run').sum()),
-    home_runs=('events', lambda x: (x == 'home_run').sum())
-).reset_index()
+# Ensure data has the required columns
+required_columns = ['pitcher', 'batter', 'game_date', 'events', 'post_home_score', 'post_away_score']
+missing_columns = [col for col in required_columns if col not in data.columns]
+if missing_columns:
+    raise ValueError(f"Missing columns in the data: {missing_columns}")
 
-# Merge game data with pitcher_batter_stats
-merged_data = data.merge(pitcher_batter_stats, on=['pitcher', 'batter'], how='left')
-
-# Check if 'post_home_score' and 'post_away_score' are in the data
-if 'post_home_score' not in merged_data.columns or 'post_away_score' not in merged_data.columns:
-    raise ValueError("Columns 'post_home_score' and 'post_away_score' are required in the data.")
-
-# Aggregate stats for each game by summing the individual player stats
-game_stats = merged_data.groupby(['game_date', 'home_team', 'away_team', 'pitcher', 'batter']).agg(
-    total_strikeouts=('strikeouts', 'sum'),
-    total_walks=('walks', 'sum'),
-    total_hits=('hits', 'sum'),
-    total_home_runs=('home_runs', 'sum'),
-    home_score=('post_home_score', 'max'),
-    away_score=('post_away_score', 'max')
-).reset_index()
-
-# Determine the winner
-game_stats['home_win'] = (game_stats['home_score'] > game_stats['away_score']).astype(int)
-
-# Set pandas to display all columns
-pd.set_option('display.max_columns', None)
-
-# Print out the head of the DataFrame before training
-print("Head of the DataFrame before training:")
-print(game_stats.head())
-
-# Prepare features and labels
-X = game_stats[['total_strikeouts', 'total_walks', 'total_hits', 'total_home_runs', 'pitcher', 'batter']]
-y = game_stats['home_win']
-
-# Encode labels
-encoder = LabelEncoder()
-y_encoded = encoder.fit_transform(y)
-
-# Split the data
-X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, random_state=42, stratify=y_encoded)
-
-# Check data balance
-print("Training set class distribution:", np.bincount(y_train))
-print("Test set class distribution:", np.bincount(y_test))
-
-# Impute missing values
+# Handle missing values
 imputer = SimpleImputer(strategy='mean')
-X_train_imputed = imputer.fit_transform(X_train)
-X_test_imputed = imputer.transform(X_test)
+data[data.select_dtypes(include=np.number).columns] = imputer.fit_transform(data.select_dtypes(include=np.number))
 
-# Scale the features
+# Encode categorical variables
+label_encoders = {}
+for column in data.select_dtypes(include=['object']).columns:
+    label_encoders[column] = LabelEncoder()
+    data[column] = label_encoders[column].fit_transform(data[column])
+
+# Standardize numerical features
 scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train_imputed)
-X_test_scaled = scaler.transform(X_test_imputed)
+numerical_features = data.select_dtypes(include=np.number).columns
+data[numerical_features] = scaler.fit_transform(data[numerical_features])
 
-# Train the model
-model = RandomForestClassifier(random_state=42)
-model.fit(X_train_scaled, y_train)
+# Convert game_date to datetime
+data['game_date'] = pd.to_datetime(data['game_date'])
+data.sort_values(by='game_date', inplace=True)
 
-# Evaluate the model
-y_pred_train = model.predict(X_train_scaled)
-y_pred_test = model.predict(X_test_scaled)
+# Initialize columns for historical metrics
+data['at_bats'] = np.nan
+data['batting_avg_against'] = np.nan
+data['avg_home_score'] = np.nan
+data['avg_away_score'] = np.nan
 
-print("Training accuracy:", accuracy_score(y_train, y_pred_train))
-print("Test accuracy:", accuracy_score(y_test, y_pred_test))
-print("Classification report:\n", classification_report(y_test, y_pred_test))
+# Calculate historical performance metrics for each pitcher-batter pair
+for i, row in data.iterrows():
+    past_data = data[(data['game_date'] < row['game_date']) & (data['pitcher'] == row['pitcher']) & (data['batter'] == row['batter'])]
+    if not past_data.empty:
+        data.at[i, 'at_bats'] = len(past_data)
+        data.at[i, 'batting_avg_against'] = past_data['events'].mean()  # Ensure 'events' is numeric or change this calculation
+        data.at[i, 'avg_home_score'] = past_data['post_home_score'].mean()
+        data.at[i, 'avg_away_score'] = past_data['post_away_score'].mean()
+    else:
+        data.at[i, 'at_bats'] = 0
+        data.at[i, 'batting_avg_against'] = 0.0
+        data.at[i, 'avg_home_score'] = data['post_home_score'].mean()
+        data.at[i, 'avg_away_score'] = data['post_away_score'].mean()
 
-# Save the model and preprocessors
-joblib.dump(model, 'game_outcome_predictor.pkl')
-joblib.dump(imputer, 'imputer.pkl')
-joblib.dump(scaler, 'scaler.pkl')
-joblib.dump(encoder, 'encoder.pkl')
+# Drop rows with NaN historical metrics (first occurrences)
+initial_data_size = len(data)
+data.dropna(subset=['at_bats', 'batting_avg_against', 'avg_home_score', 'avg_away_score'], inplace=True)
+remaining_data_size = len(data)
+print(f"Initial data size: {initial_data_size}, Remaining data size: {remaining_data_size}")
 
+# Check if the dataset is empty after dropping rows
+if data.empty:
+    raise ValueError("No data left after dropping rows with NaN historical metrics.")
 
-# Function to preprocess today's lineups
-def preprocess_data(lineups):
-    # Assuming `lineups` is a DataFrame with the necessary columns
-    # Extract relevant features for prediction
-    features = lineups[['player_id', 'team_abbr', 'position', 'batting_order']]
+# Define the target variable and feature set
+data['game_outcome'] = (data['post_home_score'] > data['post_away_score']).astype(int)
+X = data.drop(columns=['game_outcome', 'game_date', 'post_home_score', 'post_away_score', 'events'])
+y = data['game_outcome']
 
-    # Encode categorical variables
-    label_encoders = {}
-    for column in ['team_abbr', 'position', 'batting_order']:
-        le = LabelEncoder()
-        features[column] = le.fit_transform(features[column])
-        label_encoders[column] = le
+# Handle class imbalance using SMOTE if necessary
+if X.shape[0] == 0:
+    raise ValueError("No samples available for resampling.")
 
-    # Standardize numerical features
-    scaler = StandardScaler()
-    features[['player_id']] = scaler.fit_transform(features[['player_id']])
+# Train-test split without shuffling for time series data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
 
-    # Aggregate stats for each team (this is a simplified example)
-    team_features = features.groupby('team_abbr').mean().reset_index()
+# Use SMOTE on the training data only to avoid data leakage
+smote = SMOTE()
+X_resampled, y_resampled = smote.fit_resample(X_train, y_train)
 
-    return team_features
+# Use TimeSeriesSplit for time series data
+tscv = TimeSeriesSplit(n_splits=5)
+
+# Train a Random Forest Classifier
+clf = RandomForestClassifier()
+param_grid = {
+    'n_estimators': [100, 200],
+    'max_depth': [None, 10, 20],
+    'min_samples_split': [2, 5],
+    'min_samples_leaf': [1, 2]
+}
+
+grid_search = GridSearchCV(clf, param_grid, cv=tscv, scoring='accuracy')
+grid_search.fit(X_resampled, y_resampled)
+
+# Evaluate the model on the separate test set
+y_pred = grid_search.best_estimator_.predict(X_test)
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Classification Report:\n", classification_report(y_test, y_pred))
+
+# Save the model
+joblib.dump(grid_search.best_estimator_, 'baseball_game_outcome_predictor.pkl')
