@@ -13,8 +13,9 @@ import time
 # Connect to the SQLite database
 conn = sqlite3.connect('baseball_data.db')
 
-# Load data into a pandas DataFrame
-data = pd.read_sql_query("SELECT * FROM statcast_data LIMIT 100000", conn)
+# Load data into a pandas DataFrame and limit to 50,000 rows
+query = "SELECT pitcher, batter, game_date, events, post_home_score, post_away_score FROM statcast_data WHERE game_date BETWEEN '2023-04-01' AND '2024-06-09' LIMIT 700000"
+data = pd.read_sql_query(query, conn)
 
 # Close the connection
 conn.close()
@@ -79,14 +80,10 @@ data['game_outcome'] = (data['post_home_score'] > data['post_away_score']).astyp
 X = data.drop(columns=['game_outcome', 'game_date', 'post_home_score', 'post_away_score', 'events'])
 y = data['game_outcome']
 
-# Handle class imbalance using SMOTE if necessary
-if X.shape[0] == 0:
-    raise ValueError("No samples available for resampling.")
-
 # Train-test split without shuffling for time series data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
 
-# Use SMOTE on the training data only to avoid data leakage
+# Use SMote on the training data only to avoid data leakage
 smote = SMOTE()
 X_resampled, y_resampled = smote.fit_resample(X_train, y_train)
 
@@ -106,7 +103,7 @@ param_grid = {
     'min_samples_leaf': [1, 2]
 }
 
-grid_search = GridSearchCV(clf, param_grid, cv=tscv, scoring='accuracy')
+grid_search = GridSearchCV(clf, param_grid, cv=tscv, scoring='accuracy', n_jobs=-1)
 grid_search.fit(X_resampled, y_resampled)
 
 # End the clock time and CPU time
