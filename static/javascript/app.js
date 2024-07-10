@@ -48,4 +48,4 @@ const formattedDate =
 document.getElementById("current-date").innerHTML = formattedDate;
 
   });
-  
+
