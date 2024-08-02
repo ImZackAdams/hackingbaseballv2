@@ -26,7 +26,7 @@ def fetch_data_for_date(single_date, retries=5, wait_time=10):
 
 
 start_date = date(2021, 4, 1)
-end_date = date(2023, 10, 5)
+end_date = date(2024, 10, 5)
 
 all_data = pd.DataFrame()
 
