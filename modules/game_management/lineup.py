@@ -20,6 +20,7 @@ team_name_to_abbreviation = {
     'Toronto Blue Jays': 'TOR', 'Washington Nationals': 'WSN'
 }
 
+
 def fetch_and_process_schedules(year):
     team_abbreviations = list(team_name_to_abbreviation.values())
 
@@ -49,6 +50,7 @@ def fetch_and_process_schedules(year):
 
     return unique_games_sorted
 
+
 def get_or_update_schedules(year):
     if os.path.exists(cache_file):
         modified_time = datetime.fromtimestamp(os.path.getmtime(cache_file))
@@ -67,6 +69,7 @@ def get_or_update_schedules(year):
     schedules = fetch_and_process_schedules(year)
     schedules.to_json(cache_file, date_format='iso')
     return schedules
+
 
 def fetch_starting_lineups(date):
     url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={date}"
@@ -115,6 +118,7 @@ def fetch_starting_lineups(date):
     lineups_df = pd.DataFrame(lineup_data)
     return lineups_df
 
+
 def get_yesterday_lineups_for_teams():
     yesterday_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
     lineups = fetch_starting_lineups(yesterday_date)
@@ -130,12 +134,17 @@ def get_yesterday_lineups_for_teams():
     starting_lineup_and_pitcher = lineups[
         (lineups['batting_order'] != '') | (lineups['position'] == 'P')]
 
-    # Sort by batting order to get the correct lineup order
-    starting_lineup_and_pitcher = starting_lineup_and_pitcher.sort_values(by='batting_order')
+    # Sort by team and batting order to get the correct lineup order
+    starting_lineup_and_pitcher = starting_lineup_and_pitcher.sort_values(by=['team', 'batting_order'])
 
     return starting_lineup_and_pitcher
 
+
 if __name__ == "__main__":
+    # Set pandas display options to show all columns
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.expand_frame_repr', False)
+
     year = datetime.now().year
     schedules = get_or_update_schedules(year)
     print("Schedules for the year:")
@@ -144,4 +153,4 @@ if __name__ == "__main__":
     lineups_yesterday = get_yesterday_lineups_for_teams()
     if lineups_yesterday is not None:
         print("Starting lineups for yesterday:")
-        print(lineups_yesterday[['game_date', 'team', 'player_name', 'position', 'batting_order']])
+        print(lineups_yesterday)
