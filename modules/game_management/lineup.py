@@ -5,8 +5,68 @@ from pybaseball import schedule_and_record
 import requests
 import numpy as np
 
-from modules.game_management.utils import team_name_to_abbreviation
+# Define the cache file location
+cache_file = 'game_schedules.json'
 
+# Dictionary to map full team names to abbreviations
+team_name_to_abbreviation = {
+    'Arizona Diamondbacks': 'ARI', 'Atlanta Braves': 'ATL', 'Baltimore Orioles': 'BAL', 'Boston Red Sox': 'BOS',
+    'Chicago Cubs': 'CHC', 'Cincinnati Reds': 'CIN', 'Cleveland Guardians': 'CLE', 'Colorado Rockies': 'COL',
+    'Chicago White Sox': 'CHW', 'Detroit Tigers': 'DET', 'Houston Astros': 'HOU', 'Kansas City Royals': 'KC',
+    'Los Angeles Angels': 'LAA', 'Los Angeles Dodgers': 'LAD', 'Miami Marlins': 'MIA', 'Milwaukee Brewers': 'MIL',
+    'Minnesota Twins': 'MIN', 'New York Mets': 'NYM', 'New York Yankees': 'NYY', 'Oakland Athletics': 'OAK',
+    'Philadelphia Phillies': 'PHI', 'Pittsburgh Pirates': 'PIT', 'San Diego Padres': 'SD', 'Seattle Mariners': 'SEA',
+    'San Francisco Giants': 'SF', 'St. Louis Cardinals': 'STL', 'Tampa Bay Rays': 'TB', 'Texas Rangers': 'TEX',
+    'Toronto Blue Jays': 'TOR', 'Washington Nationals': 'WSN'
+}
+
+def fetch_and_process_schedules(year):
+    team_abbreviations = list(team_name_to_abbreviation.values())
+
+    all_games = pd.DataFrame()
+
+    for team in team_abbreviations:
+        try:
+            team_schedule = schedule_and_record(year, team)
+            all_games = pd.concat([all_games, team_schedule], ignore_index=True)
+        except Exception as e:
+            print(f"Failed to retrieve schedule for {team}: {e}")
+
+    all_games = all_games.dropna(subset=['Date', 'Tm', 'Opp'])
+    all_games['unique_id'] = all_games.apply(lambda row: row['Date'] + ''.join(sorted([row['Tm'], row['Opp']])), axis=1)
+    unique_games = all_games.drop_duplicates(subset=['unique_id'])
+    unique_games = unique_games.drop(columns=['unique_id'])
+    unique_games['Date'] = pd.to_datetime(unique_games['Date'], errors='coerce', format='%A, %b %d')
+    unique_games['Date'] = unique_games['Date'].apply(lambda d: d.replace(year=year) if not pd.isnull(d) else d)
+    unique_games_sorted = unique_games.sort_values(by='Date', ascending=True)
+    unique_games_sorted = unique_games_sorted.reset_index(drop=True)
+    unique_games_sorted['id'] = unique_games_sorted.apply(
+        lambda row: f"{row['Tm']}_{row['Opp']}_{row['Date'].strftime('%Y%m%d')}" if not pd.isnull(
+            row['Date']) else None, axis=1
+    )
+    unique_games_sorted['Attendance'].replace(r'^Unknown$', np.nan, regex=True,
+                                              inplace=True)  # Convert 'Unknown' to NaN
+
+    return unique_games_sorted
+
+def get_or_update_schedules(year):
+    if os.path.exists(cache_file):
+        modified_time = datetime.fromtimestamp(os.path.getmtime(cache_file))
+        if datetime.now() - modified_time < timedelta(days=1):
+            with open(cache_file, 'r') as file:
+                schedules = pd.read_json(file, convert_dates=['Date'])
+                if 'id' not in schedules.columns:
+                    schedules['id'] = schedules.apply(
+                        lambda row: f"{row['Tm']}_{row['Opp']}_{row['Date'].strftime('%Y%m%d')}" if not pd.isnull(
+                            row['Date']) else None, axis=1
+                    )
+                schedules['Attendance'].replace(r'^Unknown$', np.nan, regex=True,
+                                                inplace=True)  # Convert 'Unknown' to NaN
+                return schedules
+
+    schedules = fetch_and_process_schedules(year)
+    schedules.to_json(cache_file, date_format='iso')
+    return schedules
 
 def fetch_starting_lineups(date):
     url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={date}"
@@ -55,8 +115,7 @@ def fetch_starting_lineups(date):
     lineups_df = pd.DataFrame(lineup_data)
     return lineups_df
 
-
-def get_yesterday_lineups_for_teams(team_abbreviations):
+def get_yesterday_lineups_for_teams():
     yesterday_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
     lineups = fetch_starting_lineups(yesterday_date)
     if lineups is None:
@@ -67,33 +126,22 @@ def get_yesterday_lineups_for_teams(team_abbreviations):
     if 'team_abbr' not in lineups.columns:
         lineups['team_abbr'] = lineups['team'].map(team_name_to_abbreviation)
 
-    # Filter for the specified teams' lineups
-    teams_lineup = lineups[lineups['team_abbr'].isin(team_abbreviations)]
-
     # Filter for starting batting lineup and starting pitchers
-    starting_lineup_and_pitcher = teams_lineup[
-        (teams_lineup['batting_order'] != '') | (teams_lineup['position'] == 'P')]
+    starting_lineup_and_pitcher = lineups[
+        (lineups['batting_order'] != '') | (lineups['position'] == 'P')]
 
     # Sort by batting order to get the correct lineup order
     starting_lineup_and_pitcher = starting_lineup_and_pitcher.sort_values(by='batting_order')
 
-    # Drop duplicate positions, keeping the one with the lowest batting order
-    starting_lineup_and_pitcher = starting_lineup_and_pitcher.drop_duplicates(subset=['position'])
+    return starting_lineup_and_pitcher
 
-    # Get the top 9 players with valid batting orders
-    batting_lineup = starting_lineup_and_pitcher[starting_lineup_and_pitcher['batting_order'] != ''].head(9)
-
-    # Add the starting pitcher if not already included
-    pitcher = starting_lineup_and_pitcher[starting_lineup_and_pitcher['position'] == 'P']
-    if not pitcher.empty:
-        batting_lineup = pd.concat([batting_lineup, pitcher])
-
-    return batting_lineup
-
-
-# Test case
 if __name__ == "__main__":
-    teams = ['BOS']
-    lineups_yesterday = get_yesterday_lineups_for_teams(teams)
+    year = datetime.now().year
+    schedules = get_or_update_schedules(year)
+    print("Schedules for the year:")
+    print(schedules)
+
+    lineups_yesterday = get_yesterday_lineups_for_teams()
     if lineups_yesterday is not None:
+        print("Starting lineups for yesterday:")
         print(lineups_yesterday[['game_date', 'team', 'player_name', 'position', 'batting_order']])
