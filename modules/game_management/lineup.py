@@ -67,38 +67,33 @@ def get_yesterday_lineups_for_teams(team_abbreviations):
     if 'team_abbr' not in lineups.columns:
         lineups['team_abbr'] = lineups['team'].map(team_name_to_abbreviation)
 
-    print("Lineups DataFrame before filtering:", lineups)  # Debug statement
-
     # Filter for the specified teams' lineups
     teams_lineup = lineups[lineups['team_abbr'].isin(team_abbreviations)]
-
-    print("Lineups DataFrame after filtering for teams:", teams_lineup)  # Debug statement
 
     # Filter for starting batting lineup and starting pitchers
     starting_lineup_and_pitcher = teams_lineup[
         (teams_lineup['batting_order'] != '') | (teams_lineup['position'] == 'P')]
 
-    print("Lineups DataFrame after filtering for starting lineup and pitcher:",
-          starting_lineup_and_pitcher)  # Debug statement
+    # Sort by batting order to get the correct lineup order
+    starting_lineup_and_pitcher = starting_lineup_and_pitcher.sort_values(by='batting_order')
 
-    return starting_lineup_and_pitcher
+    # Drop duplicate positions, keeping the one with the lowest batting order
+    starting_lineup_and_pitcher = starting_lineup_and_pitcher.drop_duplicates(subset=['position'])
+
+    # Get the top 9 players with valid batting orders
+    batting_lineup = starting_lineup_and_pitcher[starting_lineup_and_pitcher['batting_order'] != ''].head(9)
+
+    # Add the starting pitcher if not already included
+    pitcher = starting_lineup_and_pitcher[starting_lineup_and_pitcher['position'] == 'P']
+    if not pitcher.empty:
+        batting_lineup = pd.concat([batting_lineup, pitcher])
+
+    return batting_lineup
 
 
 # Test case
 if __name__ == "__main__":
-    teams = ['BOS', 'BAL']
+    teams = ['BOS']
     lineups_yesterday = get_yesterday_lineups_for_teams(teams)
     if lineups_yesterday is not None:
         print(lineups_yesterday[['game_date', 'team', 'player_name', 'position', 'batting_order']])
-
-
-def get_today_lineups_for_all_teams():
-    today_date = datetime.now().strftime("%Y-%m-%d")
-    lineups = fetch_starting_lineups(today_date)
-    if lineups is None:
-        print("Failed to fetch lineups.")
-        return None
-
-    starting_lineup_and_pitcher = lineups[(lineups['batting_order'] != '') | (lineups['position'] == 'P')]
-
-    return starting_lineup_and_pitcher
