@@ -10,7 +10,7 @@ import requests
 import joblib
 import os
 
-from lineup import get_yesterday_lineups_for_teams, team_name_to_abbreviation
+from lineup import get_lineups_for_teams, team_name_to_abbreviation
 
 MODEL_CACHE_FILE = 'trained_model.joblib'
 DATABASE_FILE = 'baseball_data.db'
@@ -154,126 +154,98 @@ def get_today_games():
     return today_games
 
 
-def fetch_player_stats():
-    engine = create_engine(f'sqlite:///{DATABASE_FILE}')
-    query = """
-    SELECT pitcher, batter, 
-           AVG(CASE WHEN events IN ('single', 'double', 'triple', 'home_run') THEN 1 ELSE 0 END) as batting_average,
-           AVG(CASE WHEN events IN ('single', 'double', 'triple', 'home_run', 'walk') THEN 1 ELSE 0 END) as on_base_percentage,
-           SUM(CASE 
-               WHEN events = 'single' THEN 1
-               WHEN events = 'double' THEN 2
-               WHEN events = 'triple' THEN 3
-               WHEN events = 'home_run' THEN 4
-               ELSE 0 
-           END) as total_bases
-    FROM statcast_data
-    GROUP BY pitcher, batter
-    """
-    return pd.read_sql(query, engine)
-
-    #
-    # def main():
-    #     # Train or load the model
-    #     model = train_model()
-    #
-    #     # Get yesterday's lineups
-    #     yesterday_lineups = get_yesterday_lineups_for_teams()
-    #     if yesterday_lineups is None:
-    #         print("Failed to fetch yesterday's lineups. Exiting.")
-    #         return
-    #
-    #     # Get today's games
-    #     today_games = get_today_games()
-    #     if today_games is None:
-    #         print("Failed to fetch today's games. Exiting.")
-    #         return
-    #
-    #     # Fetch pre-calculated player stats
-    #     player_stats = fetch_player_stats()
-    #
-    #     # Predict outcomes for today's games using yesterday's lineups
-    #     for game in today_games:
-    #         home_team = game['home_team']
-    #         away_team = game['away_team']
-    #
-    #         home_lineup = yesterday_lineups[yesterday_lineups['team_abbr'] == home_team]['player_id'].tolist()
-    #         away_lineup = yesterday_lineups[yesterday_lineups['team_abbr'] == away_team]['player_id'].tolist()
-    #
-    #         if not home_lineup or not away_lineup:
-    #             print(f"Missing lineup data for {home_team} vs {away_team}. Skipping.")
-    #             continue
-    #
-    #         home_win_prob = predict_game(model, home_lineup, away_lineup)
-    #         print(f"{home_team} vs {away_team}")
-    #         print(f"Home team ({home_team}) win probability: {home_win_prob:.2f}")
-    #         print(f"Away team ({away_team}) win probability: {1 - home_win_prob:.2f}")
-    #         print()
-    #
-    #
-    # if __name__ == "__main__":
-    #     main()
-
-    # explicit test case
-
-
 def main():
     # Train or load the model
     model = train_model()
 
-    # Get yesterday's lineups
-    yesterday_lineups = get_yesterday_lineups_for_teams()
-    if yesterday_lineups is None:
-        print("Failed to fetch yesterday's lineups. Exiting.")
+    # Get today's games
+    today_games = get_today_games()
+    if today_games is None:
+        print("Failed to fetch today's games. Exiting.")
         return
 
-    # Define the teams
-    home_team = 'BOS'
-    away_team = 'BAL'
+    # Get all teams playing today
+    all_teams = set([game['home_team'] for game in today_games] + [game['away_team'] for game in today_games])
 
-    # Get lineups for BAL and BOS
-    home_lineup = yesterday_lineups[yesterday_lineups['team_abbr'] == home_team]['player_id'].tolist()
-    away_lineup = yesterday_lineups[yesterday_lineups['team_abbr'] == away_team]['player_id'].tolist()
-
-    if not home_lineup or not away_lineup:
-        print(f"Missing lineup data for {home_team} or {away_team}. Exiting.")
+    # Get lineups for all teams playing today
+    lineups = get_lineups_for_teams(all_teams)
+    if lineups is None:
+        print("Failed to fetch lineups. Exiting.")
         return
 
-    print(f"\nAnalyzing matchups for {away_team} @ {home_team}")
+    print(f"\nPredicting {len(today_games)} games for today:")
 
-    # Analyze matchups
-    total_matchups = 0
-    matchups_with_data = 0
-    home_win_probability_sum = 0
+    # List to store all predictions
+    all_predictions = []
 
-    for batter in away_lineup[1:]:  # Skip the pitcher
-        outcome = predict_matchup(model, home_lineup[0], batter, 1)
-        print(f"Home pitcher {home_lineup[0]} vs Away batter {batter}: {1 - outcome:.2f}")
-        home_win_probability_sum += (1 - outcome)
-        total_matchups += 1
-        if outcome != 0.5:  # Assuming 0.5 is our default when no data is found
-            matchups_with_data += 1
+    for game in today_games:
+        home_team = game['home_team']
+        away_team = game['away_team']
 
-    for batter in home_lineup[1:]:  # Skip the pitcher
-        outcome = predict_matchup(model, away_lineup[0], batter, 0)
-        print(f"Away pitcher {away_lineup[0]} vs Home batter {batter}: {outcome:.2f}")
-        home_win_probability_sum += outcome
-        total_matchups += 1
-        if outcome != 0.5:  # Assuming 0.5 is our default when no data is found
-            matchups_with_data += 1
+        home_lineup = lineups[lineups['team_abbr'] == home_team]['player_id'].tolist()
+        away_lineup = lineups[lineups['team_abbr'] == away_team]['player_id'].tolist()
 
-    home_win_prob = home_win_probability_sum / total_matchups if total_matchups > 0 else 0.5
+        if not home_lineup or not away_lineup:
+            print(f"\nMissing lineup data for {away_team} @ {home_team}. Skipping.")
+            continue
 
-    # Print results
-    print(f"\nPrediction for {away_team} @ {home_team}")
-    print(f"Home team ({home_team}) win probability: {home_win_prob:.2f}")
-    print(f"Away team ({away_team}) win probability: {1 - home_win_prob:.2f}")
-    print(f"\nTotal matchups analyzed: {total_matchups}")
-    print(f"Matchups with historical data: {matchups_with_data}")
-    print(f"Matchups without historical data: {total_matchups - matchups_with_data}")
-    print(f"Percentage of matchups with data: {(matchups_with_data / total_matchups) * 100:.2f}%")
+        print(f"\nAnalyzing matchup: {away_team} @ {home_team}")
+
+        # Analyze matchups
+        total_matchups = 0
+        matchups_with_data = 0
+        home_win_probability_sum = 0
+
+        for batter in away_lineup[1:]:  # Skip the pitcher
+            outcome = predict_matchup(model, home_lineup[0], batter, 1)
+            home_win_probability_sum += (1 - outcome)
+            total_matchups += 1
+            if outcome != 0.5:  # Assuming 0.5 is our default when no data is found
+                matchups_with_data += 1
+
+        for batter in home_lineup[1:]:  # Skip the pitcher
+            outcome = predict_matchup(model, away_lineup[0], batter, 0)
+            home_win_probability_sum += outcome
+            total_matchups += 1
+            if outcome != 0.5:  # Assuming 0.5 is our default when no data is found
+                matchups_with_data += 1
+
+        home_win_prob = home_win_probability_sum / total_matchups if total_matchups > 0 else 0.5
+
+        # Store prediction
+        all_predictions.append({
+            'home_team': home_team,
+            'away_team': away_team,
+            'home_win_prob': home_win_prob,
+            'total_matchups': total_matchups,
+            'matchups_with_data': matchups_with_data
+        })
+
+        # Print results
+        print(f"Prediction for {away_team} @ {home_team}")
+        print(f"Home team ({home_team}) win probability: {home_win_prob:.2f}")
+        print(f"Away team ({away_team}) win probability: {1 - home_win_prob:.2f}")
+        print(f"Total matchups analyzed: {total_matchups}")
+        print(f"Matchups with historical data: {matchups_with_data}")
+        print(f"Matchups without historical data: {total_matchups - matchups_with_data}")
+        print(f"Percentage of matchups with data: {(matchups_with_data / total_matchups) * 100:.2f}%")
 
     print("\nNote: A win probability of 0.50 indicates no historical data for that matchup.")
+
+    # Print summary of all predictions
+    print("\n===== Summary of Today's Predictions =====")
+    for pred in all_predictions:
+        print(f"{pred['away_team']} @ {pred['home_team']}: "
+              f"Home {pred['home_win_prob']:.2f} - Away {1 - pred['home_win_prob']:.2f} "
+              f"(Data: {pred['matchups_with_data']}/{pred['total_matchups']})")
+
+    # Print the most confident predictions
+    print("\nMost confident predictions:")
+    sorted_predictions = sorted(all_predictions, key=lambda x: abs(x['home_win_prob'] - 0.5), reverse=True)
+    for pred in sorted_predictions[:3]:  # Top 3 most confident predictions
+        confidence = max(pred['home_win_prob'], 1 - pred['home_win_prob'])
+        favored_team = pred['home_team'] if pred['home_win_prob'] > 0.5 else pred['away_team']
+        print(f"{pred['away_team']} @ {pred['home_team']}: {favored_team} ({confidence:.2f})")
 
 
 if __name__ == "__main__":

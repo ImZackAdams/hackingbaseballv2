@@ -140,6 +140,29 @@ def get_yesterday_lineups_for_teams():
     return starting_lineup_and_pitcher
 
 
+def get_lineups_for_teams(teams):
+    today_date = datetime.now().strftime("%Y-%m-%d")
+    lineups = fetch_starting_lineups(today_date)
+    if lineups is None:
+        print("Failed to fetch lineups.")
+        return None
+
+    # Ensure 'team_abbr' column is present
+    if 'team_abbr' not in lineups.columns:
+        lineups['team_abbr'] = lineups['team'].map(team_name_to_abbreviation)
+
+    # Filter for the specified teams
+    lineups = lineups[lineups['team_abbr'].isin(teams)]
+
+    # Filter for starting batting lineup and starting pitchers
+    starting_lineup_and_pitcher = lineups[
+        (lineups['batting_order'] != '') | (lineups['position'] == 'P')]
+
+    # Sort by team and batting order to get the correct lineup order
+    starting_lineup_and_pitcher = starting_lineup_and_pitcher.sort_values(by=['team', 'batting_order'])
+
+    return starting_lineup_and_pitcher
+
 if __name__ == "__main__":
     # Set pandas display options to show all columns
     pd.set_option('display.max_columns', None)
@@ -154,3 +177,26 @@ if __name__ == "__main__":
     if lineups_yesterday is not None:
         print("Starting lineups for yesterday:")
         print(lineups_yesterday)
+
+    # Example usage of get_lineups_for_teams
+    teams_to_fetch = ['BAL', 'BOS', 'LAD']  # Example teams
+    today_lineups = get_lineups_for_teams(teams_to_fetch)
+    if today_lineups is not None:
+        print(f"\nStarting lineups for today ({', '.join(teams_to_fetch)}):")
+        print(today_lineups)
+
+
+# if __name__ == "__main__":
+#     # Set pandas display options to show all columns
+#     pd.set_option('display.max_columns', None)
+#     pd.set_option('display.expand_frame_repr', False)
+#
+#     year = datetime.now().year
+#     schedules = get_or_update_schedules(year)
+#     print("Schedules for the year:")
+#     print(schedules)
+#
+#     lineups_yesterday = get_yesterday_lineups_for_teams()
+#     if lineups_yesterday is not None:
+#         print("Starting lineups for yesterday:")
+#         print(lineups_yesterday)
