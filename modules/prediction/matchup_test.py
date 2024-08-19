@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 from sqlalchemy import create_engine
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, classification_report
-from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report, roc_auc_score
+from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from preprocessor import preprocess_data, engineer_features, print_dataframe_info
 from datetime import datetime
 import requests
@@ -15,7 +15,6 @@ from lineup import get_lineups_for_teams, team_name_to_abbreviation
 
 MODEL_CACHE_FILE = 'trained_model.joblib'
 DATABASE_FILE = 'baseball_data.db'
-
 
 def batch_preprocess(engine, batch_size=50000):
     offset = 0
@@ -36,7 +35,6 @@ def batch_preprocess(engine, batch_size=50000):
 
         offset += batch_size
 
-
 def train_model():
     if os.path.exists(MODEL_CACHE_FILE):
         print("Loading cached model...")
@@ -45,24 +43,48 @@ def train_model():
     engine = create_engine(f'sqlite:///{DATABASE_FILE}')
 
     print("Training the model in batches...")
-    model = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
+    model = RandomForestClassifier(random_state=42, n_jobs=-1)
 
     X_test, y_test = None, None
+    all_X_train, all_y_train = pd.DataFrame(), pd.Series()
 
     for i, (X_batch, y_batch) in enumerate(batch_preprocess(engine)):
         if i == 0:
             X_train, X_test, y_train, y_test = train_test_split(X_batch, y_batch, test_size=0.2, random_state=42)
-            model.fit(X_train, y_train)
+            all_X_train = X_train
+            all_y_train = y_train
         else:
-            model.fit(X_batch, y_batch)
+            all_X_train = pd.concat([all_X_train, X_batch])
+            all_y_train = pd.concat([all_y_train, y_batch])
 
         print(f"Processed batch {i + 1}")
 
+    print("Performing cross-validation...")
+    cv_scores = cross_val_score(model, all_X_train, all_y_train, cv=5, scoring='accuracy')
+    print(f"Cross-validation accuracy: {cv_scores.mean():.4f}")
+
+    print("Tuning hyperparameters with GridSearchCV...")
+    param_grid = {
+        'n_estimators': [100, 200, 300],
+        'max_depth': [None, 10, 20, 30],
+        'min_samples_split': [2, 5, 10]
+    }
+    grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=5, scoring='accuracy')
+    grid_search.fit(all_X_train, all_y_train)
+    model = grid_search.best_estimator_
+    print(f"Best parameters found: {grid_search.best_params_}")
+
+    print("Training the model with the best parameters...")
+    model.fit(all_X_train, all_y_train)
+
     if X_test is not None and y_test is not None:
-        print("Evaluating the model...")
+        print("Evaluating the model on the test set...")
         y_pred = model.predict(X_test)
         accuracy = accuracy_score(y_test, y_pred)
-        print(f"Model Accuracy: {accuracy}")
+        roc_auc = roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
+
+        print(f"Test Accuracy: {accuracy:.4f}")
+        print(f"ROC AUC Score: {roc_auc:.4f}")
         print(classification_report(y_test, y_pred))
     else:
         print("Not enough data to evaluate the model.")
@@ -71,7 +93,6 @@ def train_model():
     joblib.dump(model, MODEL_CACHE_FILE)
 
     return model
-
 
 def predict_matchup(model, pitcher_id, batter_id, is_home, engine):
     query = "SELECT * FROM statcast_data WHERE pitcher = ? AND batter = ?"
@@ -94,7 +115,6 @@ def predict_matchup(model, pitcher_id, batter_id, is_home, engine):
     except Exception as e:
         print(f"Error in predict_matchup: {e}")
         return 0.5
-
 
 def predict_game(model, home_lineup, away_lineup, engine):
     home_pitcher = home_lineup[0]
@@ -120,7 +140,6 @@ def predict_game(model, home_lineup, away_lineup, engine):
     home_win_probability = sum(1 - result if matchup[2] == 1 else result for matchup, result in results)
     return home_win_probability / len(results) if results else 0.5
 
-
 def get_today_games():
     today = datetime.now().strftime("%Y-%m-%d")
     url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={today}"
@@ -137,7 +156,6 @@ def get_today_games():
              'away_team': team_name_to_abbreviation.get(game['teams']['away']['team']['name'],
                                                         game['teams']['away']['team']['name'])}
             for game in games]
-
 
 def main():
     model = train_model()
@@ -193,7 +211,6 @@ def main():
         confidence = max(pred['home_win_prob'], 1 - pred['home_win_prob'])
         favored_team = pred['home_team'] if pred['home_win_prob'] > 0.5 else pred['away_team']
         print(f"{pred['away_team']} @ {pred['home_team']}: {favored_team} ({confidence:.2f})")
-
 
 if __name__ == "__main__":
     main()
