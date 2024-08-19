@@ -163,10 +163,12 @@ def get_lineups_for_teams(teams):
 
     return starting_lineup_and_pitcher
 
+
 if __name__ == "__main__":
-    # Set pandas display options to show all columns
+    # Set pandas display options to show all columns and rows
     pd.set_option('display.max_columns', None)
     pd.set_option('display.expand_frame_repr', False)
+    pd.set_option('display.max_rows', None)  # This will show all rows without truncation
 
     year = datetime.now().year
     schedules = get_or_update_schedules(year)
@@ -175,22 +177,27 @@ if __name__ == "__main__":
 
     lineups_yesterday = get_yesterday_lineups_for_teams()
     if lineups_yesterday is not None:
-        print("Starting lineups for yesterday:")
-        print(lineups_yesterday)
+        # Filter out players with a batting order not ending in 0, except for Pitchers (P)
+        filtered_lineups = lineups_yesterday[
+            (lineups_yesterday['batting_order'].str.endswith('0')) | (lineups_yesterday['position'] == 'P')
+            ]
 
+        # Group by game_id and then by team within each game
+        game_ids = filtered_lineups['game_id'].unique()
 
+        # Iterate over each game
+        for game_id in game_ids:
+            # Filter the lineups for the current game_id
+            game_lineups = filtered_lineups[filtered_lineups['game_id'] == game_id]
 
-# if __name__ == "__main__":
-#     # Set pandas display options to show all columns
-#     pd.set_option('display.max_columns', None)
-#     pd.set_option('display.expand_frame_repr', False)
-#
-#     year = datetime.now().year
-#     schedules = get_or_update_schedules(year)
-#     print("Schedules for the year:")
-#     print(schedules)
-#
-#     lineups_yesterday = get_yesterday_lineups_for_teams()
-#     if lineups_yesterday is not None:
-#         print("Starting lineups for yesterday:")
-#         print(lineups_yesterday)
+            # Get unique teams in the game
+            teams = game_lineups['team'].unique()
+
+            print(f"\nMatchup: {teams[0]} vs {teams[1]}")
+            print(f"Game ID: {game_id}, Date: {game_lineups['game_date'].iloc[0]}")
+
+            # Iterate over each team in the matchup
+            for team in teams:
+                print(f"\nTeam: {team}")
+                team_lineup = game_lineups[game_lineups['team'] == team]
+                print(team_lineup)
