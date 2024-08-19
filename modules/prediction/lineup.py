@@ -178,12 +178,6 @@ if __name__ == "__main__":
         print("Starting lineups for yesterday:")
         print(lineups_yesterday)
 
-    # Example usage of get_lineups_for_teams
-    teams_to_fetch = ['BAL', 'BOS', 'LAD']  # Example teams
-    today_lineups = get_lineups_for_teams(teams_to_fetch)
-    if today_lineups is not None:
-        print(f"\nStarting lineups for today ({', '.join(teams_to_fetch)}):")
-        print(today_lineups)
 
 
 # if __name__ == "__main__":
