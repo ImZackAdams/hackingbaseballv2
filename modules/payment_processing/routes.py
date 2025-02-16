@@ -9,9 +9,13 @@ payment = Blueprint('payment', __name__)
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-# Load Stripe keys from environment variables
+# Load Stripe keys from environment variables (already set in app.py)
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 public_key = os.getenv('STRIPE_PUBLIC_KEY')
+
+# Debugging keys
+logger.debug(f"Stripe Secret Key: {stripe.api_key}")
+logger.debug(f"Stripe Public Key: {public_key}")
 
 @payment.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
@@ -20,7 +24,7 @@ def create_checkout_session():
         selected_games = data.get('selectedGames', [])
 
         # Debugging: Print the received game IDs
-        print(f"Received game IDs: {selected_games}")
+        logger.debug(f"Received game IDs: {selected_games}")
 
         # Store the selected game IDs in the session
         session['selected_games'] = selected_games

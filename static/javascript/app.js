@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("currentYear").textContent = new Date().getFullYear();
   
     // Stripe integration
-    const stripe = Stripe("pk_test_51PG1mPIiIqA6x4U9lNczLfuXAXj3xq1pL72t17AK0fD6ffaKgteH6GN7pdo9KLjZQSmdEhOxyJLY3SAUv0Rb034V00W5JxNclc");
+    const stripe = Stripe("pk_test_51Qt3gVPRKQv8lwo7sbU4NDeYdh3rIaVnBQqzRkig6W7FoM2yBCCihG72ZEBeiHPBa4zG1JIpVO5DfxOZw51eVC8Q00G8Fh8z13");
     document.getElementById("game-selection-form").addEventListener("submit", function (event) {
       event.preventDefault();
       const selectedGames = Array.from(document.querySelectorAll('input[name="game_id"]:checked')).map(function (checkbox) {
