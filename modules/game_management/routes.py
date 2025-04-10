@@ -1,27 +1,42 @@
 import pandas as pd
 from flask import Blueprint, render_template
-from .utils import get_or_update_schedules
 from datetime import datetime
+import statsapi  # MLB-StatsAPI
 
 game_management = Blueprint('game_management', __name__)
 
+# Mapping of team names to abbreviations for logo lookup
+team_name_to_abbreviation = {
+    'Arizona Diamondbacks': 'ARI', 'Atlanta Braves': 'ATL', 'Baltimore Orioles': 'BAL', 'Boston Red Sox': 'BOS',
+    'Chicago Cubs': 'CHC', 'Cincinnati Reds': 'CIN', 'Cleveland Guardians': 'CLE', 'Colorado Rockies': 'COL',
+    'Chicago White Sox': 'CHW', 'Detroit Tigers': 'DET', 'Houston Astros': 'HOU', 'Kansas City Royals': 'KCR',
+    'Los Angeles Angels': 'LAA', 'Los Angeles Dodgers': 'LAD', 'Miami Marlins': 'MIA', 'Milwaukee Brewers': 'MIL',
+    'Minnesota Twins': 'MIN', 'New York Mets': 'NYM', 'New York Yankees': 'NYY', 'Oakland Athletics': 'OAK',
+    'Philadelphia Phillies': 'PHI', 'Pittsburgh Pirates': 'PIT', 'San Diego Padres': 'SDP', 'Seattle Mariners': 'SEA',
+    'San Francisco Giants': 'SFG', 'St. Louis Cardinals': 'STL', 'Tampa Bay Rays': 'TBR', 'Texas Rangers': 'TEX',
+    'Toronto Blue Jays': 'TOR', 'Washington Nationals': 'WSN'
+}
+
 @game_management.route('/')
 def index():
-    today = datetime.now().date()
-    schedules = get_or_update_schedules(today.year)
+    today_str = datetime.now().strftime('%m/%d/%Y')
+    today_display = datetime.now().strftime('%Y-%m-%d')
 
-    # Filter schedules for today's games
-    todays_games = schedules[schedules['Date'].dt.date == today]
-
-    # Create a list of game objects
+    # Get today's games
+    games_data = statsapi.schedule(start_date=today_str, end_date=today_str)
+    
     games = []
-    for _, row in todays_games.iterrows():
-        game = {
-            'id': row['id'],  # Ensure the id is properly added here
-            'away_team': row['Opp'],
-            'home_team': row['Tm'],
-            'formatted_date': row['Date'].strftime('%Y-%m-%d') if not pd.isnull(row['Date']) else 'Unknown Date'
+    for game in games_data:
+        away = game['away_name']
+        home = game['home_name']
+        game_obj = {
+            'id': game['game_id'],
+            'away_team': away,
+            'home_team': home,
+            'away_abbr': team_name_to_abbreviation.get(away, 'default'),
+            'home_abbr': team_name_to_abbreviation.get(home, 'default'),
+            'formatted_date': today_display
         }
-        games.append(game)
+        games.append(game_obj)
 
     return render_template('index.html', games=games)
