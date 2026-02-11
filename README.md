@@ -42,3 +42,19 @@ Before you begin, ensure you have met the following requirements:
 To run the Flask application, use the following command:
 ```sh
 flask run
+```
+
+## Codex Automation Loop
+You can run Codex in a local loop until tests pass. This script runs tests,
+captures failures, and invokes Codex with a prompt derived from the spec.
+
+1. Set your Codex CLI command (example):
+    ```sh
+    export CODEX_CMD=codex
+    export CODEX_ARGS='--prompt-file {prompt_file}'
+    ```
+
+2. Run the loop:
+    ```sh
+    python3 scripts/codex_loop.py --spec specs/v1.md --test-cmd "pytest -q"
+    ```

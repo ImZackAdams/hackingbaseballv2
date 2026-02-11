@@ -1,0 +1,57 @@
+You are Codex. Fix the codebase until tests pass.
+
+SPEC:
+# GlassBoxMLB OddsEdge v1 Spec (Flask)
+
+## Goal
+Build a Flask MVP that shows MLB game predictions, best sportsbook odds, and EV/edge per market.
+
+## Must-haves
+- Dashboard page with today's games.
+- Results/report page with:
+  - Model win probabilities (home/away).
+  - Best odds by sportsbook (moneyline).
+  - EV per side, derived from model probability.
+- $1 Stripe checkout for a report (no per-game pricing).
+- No bet placement.
+
+## Non-goals
+- Scraping sportsbook websites.
+- In-app betting.
+
+## Data sources
+- MLB schedule from MLB Stats API (via statsapi).
+- Odds: mock or cached data acceptable for v1.
+
+## Stop condition
+- All tests pass.
+
+
+TEST FAILURES (latest):
+
+==================================== ERRORS ====================================
+______________________ ERROR collecting tests/test_app.py ______________________
+ImportError while importing test module '/home/athena/Desktop/hackingbaseball/hackingbaseballv2/tests/test_app.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../anaconda3/envs/baseball/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_app.py:3: in <module>
+    import app as flask_app
+app.py:3: in <module>
+    from dotenv import load_dotenv
+E   ModuleNotFoundError: No module named 'dotenv'
+=========================== short test summary info ============================
+ERROR tests/test_app.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.40s
+
+
+
+Iteration: 2
+Rules:
+- Only make necessary changes to make tests pass.
+- Do not add new features beyond the spec.
+- If you change code, update or add tests as needed.
+- When done, stop.

@@ -34,18 +34,17 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   
- // Set current date
-const today = new Date();
-
-const monthNames = ["January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"];
-
-const formattedDate =
-  monthNames[today.getMonth()] + " " +
-  today.getDate() + ", " +
-  today.getFullYear();
-
-document.getElementById("current-date").innerHTML = formattedDate;
+// Set current date only if no demo date provided
+const currentDateEl = document.getElementById("current-date");
+if (currentDateEl && !currentDateEl.dataset.date) {
+  const today = new Date();
+  const monthNames = ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"];
+  const formattedDate =
+    monthNames[today.getMonth()] + " " +
+    today.getDate() + ", " +
+    today.getFullYear();
+  currentDateEl.innerHTML = formattedDate;
+}
 
   });
-

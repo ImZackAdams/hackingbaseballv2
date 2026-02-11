@@ -1,15 +1,17 @@
 import os
 from datetime import datetime, timedelta
-import pandas as pd
-from pybaseball import schedule_and_record
-import requests
-import numpy as np
 
-# Define the cache file location
-cache_file = 'game_schedules.json'
+import numpy as np
+import pandas as pd
+import requests
+from pybaseball import schedule_and_record
+
+CACHE_FILE = "game_schedules.json"
+MLB_API_BASE = "https://statsapi.mlb.com/api/v1"
+DEFAULT_TIMEOUT = 15
 
 # Dictionary to map full team names to abbreviations
-team_name_to_abbreviation = {
+TEAM_NAME_TO_ABBR = {
     'Arizona Diamondbacks': 'ARI', 'Atlanta Braves': 'ATL', 'Baltimore Orioles': 'BAL', 'Boston Red Sox': 'BOS',
     'Chicago Cubs': 'CHC', 'Cincinnati Reds': 'CIN', 'Cleveland Guardians': 'CLE', 'Colorado Rockies': 'COL',
     'Chicago White Sox': 'CHW', 'Detroit Tigers': 'DET', 'Houston Astros': 'HOU', 'Kansas City Royals': 'KC',
@@ -21,18 +23,38 @@ team_name_to_abbreviation = {
 }
 
 
-def fetch_and_process_schedules(year):
-    team_abbreviations = list(team_name_to_abbreviation.values())
+def _normalize_attendance(df):
+    if "Attendance" in df.columns:
+        df["Attendance"] = df["Attendance"].replace(r"^Unknown$", np.nan, regex=True)
+    return df
 
-    all_games = pd.DataFrame()
+
+def _add_game_id(df):
+    if "id" not in df.columns:
+        df["id"] = df.apply(
+            lambda row: f"{row['Tm']}_{row['Opp']}_{row['Date'].strftime('%Y%m%d')}"
+            if not pd.isnull(row["Date"])
+            else None,
+            axis=1,
+        )
+    return df
+
+
+def fetch_and_process_schedules(year):
+    team_abbreviations = list(TEAM_NAME_TO_ABBR.values())
+    team_schedules = []
 
     for team in team_abbreviations:
         try:
             team_schedule = schedule_and_record(year, team)
-            all_games = pd.concat([all_games, team_schedule], ignore_index=True)
+            team_schedules.append(team_schedule)
         except Exception as e:
             print(f"Failed to retrieve schedule for {team}: {e}")
 
+    if not team_schedules:
+        return pd.DataFrame()
+
+    all_games = pd.concat(team_schedules, ignore_index=True)
     all_games = all_games.dropna(subset=['Date', 'Tm', 'Opp'])
     all_games['unique_id'] = all_games.apply(lambda row: row['Date'] + ''.join(sorted([row['Tm'], row['Opp']])), axis=1)
     unique_games = all_games.drop_duplicates(subset=['unique_id'])
@@ -41,94 +63,105 @@ def fetch_and_process_schedules(year):
     unique_games['Date'] = unique_games['Date'].apply(lambda d: d.replace(year=year) if not pd.isnull(d) else d)
     unique_games_sorted = unique_games.sort_values(by='Date', ascending=True)
     unique_games_sorted = unique_games_sorted.reset_index(drop=True)
-    unique_games_sorted['id'] = unique_games_sorted.apply(
-        lambda row: f"{row['Tm']}_{row['Opp']}_{row['Date'].strftime('%Y%m%d')}" if not pd.isnull(
-            row['Date']) else None, axis=1
-    )
-    unique_games_sorted['Attendance'].replace(r'^Unknown$', np.nan, regex=True,
-                                              inplace=True)  # Convert 'Unknown' to NaN
+    unique_games_sorted = _add_game_id(unique_games_sorted)
+    unique_games_sorted = _normalize_attendance(unique_games_sorted)
 
     return unique_games_sorted
 
 
+def _load_cached_schedules():
+    if not os.path.exists(CACHE_FILE):
+        return None
+
+    modified_time = datetime.fromtimestamp(os.path.getmtime(CACHE_FILE))
+    if datetime.now() - modified_time >= timedelta(days=1):
+        return None
+
+    with open(CACHE_FILE, "r") as file:
+        schedules = pd.read_json(file, convert_dates=["Date"])
+    schedules = _add_game_id(schedules)
+    schedules = _normalize_attendance(schedules)
+    return schedules
+
+
+def _save_schedules(schedules):
+    schedules.to_json(CACHE_FILE, date_format="iso")
+
+
 def get_or_update_schedules(year):
-    if os.path.exists(cache_file):
-        modified_time = datetime.fromtimestamp(os.path.getmtime(cache_file))
-        if datetime.now() - modified_time < timedelta(days=1):
-            with open(cache_file, 'r') as file:
-                schedules = pd.read_json(file, convert_dates=['Date'])
-                if 'id' not in schedules.columns:
-                    schedules['id'] = schedules.apply(
-                        lambda row: f"{row['Tm']}_{row['Opp']}_{row['Date'].strftime('%Y%m%d')}" if not pd.isnull(
-                            row['Date']) else None, axis=1
-                    )
-                schedules['Attendance'].replace(r'^Unknown$', np.nan, regex=True,
-                                                inplace=True)  # Convert 'Unknown' to NaN
-                return schedules
+    schedules = _load_cached_schedules()
+    if schedules is not None:
+        return schedules
 
     schedules = fetch_and_process_schedules(year)
-    schedules.to_json(cache_file, date_format='iso')
+    _save_schedules(schedules)
     return schedules
 
 
 def fetch_starting_lineups(date):
-    url = f"https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={date}"
-    response = requests.get(url)
-    if response.status_code != 200:
-        print(f"Failed to fetch schedule data: {response.status_code}")
+    url = f"{MLB_API_BASE}/schedule?sportId=1&date={date}"
+    try:
+        response = requests.get(url, timeout=DEFAULT_TIMEOUT)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        print(f"Failed to fetch schedule data: {e}")
         return None
 
     schedule_data = response.json()
-    games = schedule_data.get('dates', [])[0].get('games', [])
+    dates = schedule_data.get("dates", [])
+    if not dates:
+        return pd.DataFrame()
+    games = dates[0].get("games", [])
 
     lineup_data = []
     for game in games:
-        game_id = game['gamePk']
-        game_date = game['officialDate']
+        game_id = game["gamePk"]
+        game_date = game["officialDate"]
 
-        lineup_url = f"https://statsapi.mlb.com/api/v1/game/{game_id}/boxscore"
-        lineup_response = requests.get(lineup_url)
-
-        if lineup_response.status_code != 200:
-            print(f"Failed to fetch lineup for game {game_id}: {lineup_response.status_code}")
+        lineup_url = f"{MLB_API_BASE}/game/{game_id}/boxscore"
+        try:
+            lineup_response = requests.get(lineup_url, timeout=DEFAULT_TIMEOUT)
+            lineup_response.raise_for_status()
+        except requests.RequestException as e:
+            print(f"Failed to fetch lineup for game {game_id}: {e}")
             continue
 
         lineup_info = lineup_response.json()
 
         for team in ['home', 'away']:
-            team_info = lineup_info['teams'][team]
-            team_name = team_info['team']['name']
-            starting_pitcher_id = team_info['pitchers'][0] if team_info['pitchers'] else None
-            for player in team_info['players'].values():
-                player_position = player.get('position', {}).get('abbreviation', '')
+            team_info = lineup_info["teams"].get(team, {})
+            team_name = team_info.get("team", {}).get("name")
+            pitchers = team_info.get("pitchers") or []
+            starting_pitcher_id = pitchers[0] if pitchers else None
+            for player in team_info.get("players", {}).values():
+                player_position = player.get("position", {}).get("abbreviation", "")
                 # Only include players with a batting order or starting pitchers
-                if 'battingOrder' in player or player['person']['id'] == starting_pitcher_id:
+                player_id = player.get("person", {}).get("id")
+                if "battingOrder" in player or player_id == starting_pitcher_id:
                     player_info = {
                         'game_id': game_id,
                         'game_date': game_date,
                         'team': team_name,
-                        'team_abbr': team_name_to_abbreviation.get(team_name, None),  # Add abbreviation
-                        'player_id': player['person']['id'],
-                        'player_name': player['person']['fullName'],
-                        'batting_order': player.get('battingOrder', ''),
+                        'team_abbr': TEAM_NAME_TO_ABBR.get(team_name, None),  # Add abbreviation
+                        'player_id': player_id,
+                        'player_name': player.get("person", {}).get("fullName"),
+                        'batting_order': player.get("battingOrder", ""),
                         'position': player_position
                     }
                     lineup_data.append(player_info)
 
-    lineups_df = pd.DataFrame(lineup_data)
-    return lineups_df
+    return pd.DataFrame(lineup_data)
 
 
-def get_yesterday_lineups_for_teams():
-    yesterday_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-    lineups = fetch_starting_lineups(yesterday_date)
+def get_lineups_for_date(date):
+    lineups = fetch_starting_lineups(date)
     if lineups is None:
         print("Failed to fetch lineups.")
         return None
 
     # Ensure 'team_abbr' column is present
     if 'team_abbr' not in lineups.columns:
-        lineups['team_abbr'] = lineups['team'].map(team_name_to_abbreviation)
+        lineups['team_abbr'] = lineups['team'].map(TEAM_NAME_TO_ABBR)
 
     # Filter for starting batting lineup and starting pitchers
     starting_lineup_and_pitcher = lineups[
@@ -138,6 +171,11 @@ def get_yesterday_lineups_for_teams():
     starting_lineup_and_pitcher = starting_lineup_and_pitcher.sort_values(by=['team', 'batting_order'])
 
     return starting_lineup_and_pitcher
+
+
+def get_yesterday_lineups_for_teams():
+    yesterday_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+    return get_lineups_for_date(yesterday_date)
 
 
 if __name__ == "__main__":

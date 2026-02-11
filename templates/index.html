@@ -52,7 +52,12 @@
       {% if games %}
       <div>
         <h2>Today's Games</h2>
-        <h2 id="current-date">{{ games[0].formatted_date }}</h2>
+        <h2 id="current-date" data-date="{{ games[0].formatted_date }}">{{ games[0].formatted_date }}</h2>
+        {% if demo_date %}
+        <div class="alert alert-info mt-2">
+          Demo date: {{ demo_date }}
+        </div>
+        {% endif %}
         <form id="game-selection-form">
           <table class="game-table">
             <thead>

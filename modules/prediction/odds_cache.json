@@ -1,0 +1,46 @@
+{
+  "123": {
+    "moneyline": {
+      "home": {
+        "Book A": -120,
+        "Book B": -115,
+        "Book C": -110
+      },
+      "away": {
+        "Book A": 110,
+        "Book B": 105,
+        "Book C": 100
+      }
+    },
+    "runline": {
+      "home": {
+        "Book A": -140,
+        "Book B": -135,
+        "Book C": -130
+      },
+      "away": {
+        "Book A": 120,
+        "Book B": 125,
+        "Book C": 130
+      }
+    },
+    "totals": {
+      "line": 8.5,
+      "over": {
+        "Book A": -110,
+        "Book B": 100,
+        "Book C": 105
+      },
+      "under": {
+        "Book A": -110,
+        "Book B": 100,
+        "Book C": 105
+      }
+    },
+    "why": [
+      "Starting pitcher advantage",
+      "Recent offense form",
+      "Bullpen rest"
+    ]
+  }
+}

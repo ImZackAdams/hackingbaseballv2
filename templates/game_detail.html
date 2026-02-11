@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game Detail</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='css/styles.css') }}"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header class="header">
+      <div class="brand_name">Hacking Baseball</div>
+    </header>
+
+    <section class="results-container">
+      <div class="container">
+        {% if game %}
+        <h2>{{ game.away_team }} at {{ game.home_team }}</h2>
+        <p>
+          Win Prob: {{ game.home_team }} {{ (game.home_win_prob * 100) | round(1) }}% /
+          {{ game.away_team }} {{ (game.away_win_prob * 100) | round(1) }}%
+        </p>
+
+        <h4>Moneyline Odds</h4>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Book</th>
+              <th>Home</th>
+              <th>Away</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for book, odds in game.all_odds.moneyline.home.items() %}
+            <tr>
+              <td>{{ book }}</td>
+              <td>{{ odds }}</td>
+              <td>{{ game.all_odds.moneyline.away[book] }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <h4>Run Line (-1.5/+1.5)</h4>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Book</th>
+              <th>Home -1.5</th>
+              <th>Away +1.5</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for book, odds in game.all_odds.runline.home.items() %}
+            <tr>
+              <td>{{ book }}</td>
+              <td>{{ odds }}</td>
+              <td>{{ game.all_odds.runline.away[book] }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <h4>Totals (O/U {{ game.total_line }})</h4>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Book</th>
+              <th>Over</th>
+              <th>Under</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for book, odds in game.all_odds.totals.over.items() %}
+            <tr>
+              <td>{{ book }}</td>
+              <td>{{ odds }}</td>
+              <td>{{ game.all_odds.totals.under[book] }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <h4>Why</h4>
+        <p>
+          {% if game.why %}
+            {{ game.why | join(", ") }}
+          {% else %}
+            Model factors unavailable
+          {% endif %}
+        </p>
+        {% else %}
+        <div class="alert alert-warning">Game not found.</div>
+        {% endif %}
+      </div>
+    </section>
+  </body>
+</html>

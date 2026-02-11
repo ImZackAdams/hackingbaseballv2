@@ -1,0 +1,40 @@
+You are Codex. Fix the codebase until tests pass.
+
+SPEC:
+# GlassBoxMLB OddsEdge v1 Spec (Flask)
+
+## Goal
+Build a Flask MVP that shows MLB game predictions, best sportsbook odds, and EV/edge per market.
+
+## Must-haves
+- Dashboard page with today's games.
+- Results/report page with:
+  - Model win probabilities (home/away).
+  - Best odds by sportsbook (moneyline).
+  - EV per side, derived from model probability.
+- $1 Stripe checkout for a report (no per-game pricing).
+- No bet placement.
+
+## Non-goals
+- Scraping sportsbook websites.
+- In-app betting.
+
+## Data sources
+- MLB schedule from MLB Stats API (via statsapi).
+- Odds: mock or cached data acceptable for v1.
+
+## Stop condition
+- All tests pass.
+
+
+TEST FAILURES (latest):
+
+/home/athena/anaconda3/envs/baseball/bin/python: No module named pytest
+
+
+Iteration: 1
+Rules:
+- Only make necessary changes to make tests pass.
+- Do not add new features beyond the spec.
+- If you change code, update or add tests as needed.
+- When done, stop.

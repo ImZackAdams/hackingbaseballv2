@@ -29,17 +29,17 @@ def create_checkout_session():
         # Store the selected game IDs in the session
         session['selected_games'] = selected_games
 
-        # For demonstration purposes, we'll assume each selected game costs $5
+        # Prototype pricing: $1 per report (not per game)
         line_items = [{
             'price_data': {
                 'currency': 'usd',
                 'product_data': {
-                    'name': f'Prediction for game {game_id}',
+                    'name': 'MLB Prediction Report',
                 },
-                'unit_amount': 500,
+                'unit_amount': 100,
             },
             'quantity': 1,
-        } for game_id in selected_games]
+        }]
 
         stripe_session = stripe.checkout.Session.create(
             payment_method_types=['card'],

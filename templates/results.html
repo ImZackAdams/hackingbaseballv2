@@ -47,16 +47,54 @@
           <thead>
             <tr>
               <th>Game</th>
-              <th>Prediction</th>
-              <th>Sports Book Odds</th>
+              <th>Win Prob</th>
+              <th>Best Home EV</th>
+              <th>Best Away EV</th>
+              <th>Run Line</th>
+              <th>Total</th>
+              <th>Why</th>
             </tr>
           </thead>
           <tbody>
             {% for game in games %}
             <tr>
               <td>{{ game.away_team }} at {{ game.home_team }}</td>
-              <td>{{ game.prediction }}</td>
-              <td>{{ game.odds }}</td>
+              <td>
+                {{ game.home_team }} {{ (game.home_win_prob * 100) | round(1) }}% /
+                {{ game.away_team }} {{ (game.away_win_prob * 100) | round(1) }}%
+              </td>
+              <td>
+                {{ game.best_home.book }} ({{ game.best_home.odds }})
+                EV: {{ game.best_home.ev | round(3) }}
+              </td>
+              <td>
+                {{ game.best_away.book }} ({{ game.best_away.odds }})
+                EV: {{ game.best_away.ev | round(3) }}
+              </td>
+              <td>
+                {{ game.home_team }} -1.5:
+                {{ game.best_runline_home.book }} ({{ game.best_runline_home.odds }})
+                EV: {{ game.best_runline_home.ev | round(3) }}
+                <br />
+                {{ game.away_team }} +1.5:
+                {{ game.best_runline_away.book }} ({{ game.best_runline_away.odds }})
+                EV: {{ game.best_runline_away.ev | round(3) }}
+              </td>
+              <td>
+                O/U {{ game.total_line }}:
+                Over {{ game.best_total_over.book }} ({{ game.best_total_over.odds }})
+                EV: {{ game.best_total_over.ev | round(3) }}
+                <br />
+                Under {{ game.best_total_under.book }} ({{ game.best_total_under.odds }})
+                EV: {{ game.best_total_under.ev | round(3) }}
+              </td>
+              <td>
+                {% if game.why %}
+                  {{ game.why | join(", ") }}
+                {% else %}
+                  Model factors unavailable
+                {% endif %}
+              </td>
             </tr>
             {% endfor %}
           </tbody>

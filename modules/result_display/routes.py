@@ -19,3 +19,11 @@ def results():
     print(f"Predictions: {predictions}")
 
     return render_template('results.html', games=predictions)
+
+
+@result_display.route('/game/<game_id>')
+def game_detail(game_id):
+    predictions = get_game_predictions([game_id])
+    if not predictions:
+        return render_template('game_detail.html', game=None)
+    return render_template('game_detail.html', game=predictions[0])

@@ -1,0 +1,2 @@
+
+/home/athena/anaconda3/envs/baseball/bin/python: No module named pytest
