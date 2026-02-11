@@ -1,22 +1,33 @@
+/* ====================
+   GLOBAL STYLES
+==================== */
+
 body {
   background-color: #f0f8ff;
   color: #021f40;
+  font-family: "Poppins", sans-serif;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   margin: 0;
-  font-family: "Poppins", sans-serif;
 }
 
-/* HEADER */
+/* ====================
+   HEADER
+==================== */
 
 .header {
   display: flex;
-  justify-conent: space-between;
-  align-item: center;
+  justify-content: space-between;
+  align-items: center;
   background-color: #c20032;
   padding: 20px 50px;
   box-sizing: border-box;
+}
+
+.logo_img {
+  height: 80px;
+  width: 80px;
 }
 
 .brand_name {
@@ -27,13 +38,10 @@ body {
   text-align: right;
 }
 
-/* LOGO */
-.logo_img {
-  height: 80px;
-  width: 80px;
-}
+/* ====================
+   HERO SECTION
+==================== */
 
-/* HERO */
 .hero_content {
   text-align: center;
   max-width: 800px;
@@ -41,23 +49,26 @@ body {
   font-size: 20px;
 }
 
-/* GAMES LIST */
+/* ====================
+   GAME SECTION
+==================== */
+
 .games-container {
   margin-bottom: 60px;
-  text-align: center; 
+  text-align: center;
 }
 
-/* GAMES TABLE */
 .game-table {
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
+  border-collapse: collapse;
 }
 
 .game-table th,
 .game-table td {
   vertical-align: middle;
-  padding: 30px; 
+  padding: 30px;
 }
 
 .game-table thead th {
@@ -70,37 +81,34 @@ body {
 }
 
 .game-table img {
-  width: 80px; 
-  height: 80px; 
-  margin-right: 10px; 
+  width: 80px;
+  height: 80px;
+  margin: 0 10px;
 }
 
 .game-table td.team-info {
-  padding-right: 20px; /* Adjust the padding to add space between elements */
+  padding-right: 20px;
 }
 
-.at {
-  margin-right: 40px;
+.game-table .at {
+  margin: 0 20px;
 }
 
-.game-table td.team-info img {
-  margin-right: 40px;
-  margin-left: 10px; 
-}
-
-
-/* Checkout Button */
+/* ====================
+   BUTTONS
+==================== */
 
 .custom-btn {
   background-color: #c20032;
   color: #f0f8ff;
-  border-radius: 5px; 
-  padding: 10px 20px; 
-  font-size: 20px; 
-  cursor: pointer; 
-  transition: background-color 0.3s ease; 
-  margin-top: 20px;
-  margin-left: 650px;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin: 20px auto 0;
+  display: block;
 }
 
 .custom-btn:hover {
@@ -108,100 +116,92 @@ body {
 }
 
 .custom-btn:focus {
-  outline: none; 
+  outline: none;
 }
 
+/* ====================
+   FOOTER
+==================== */
 
 footer {
-  left: 0;
-  margin-top: auto;
-  width: 100%;
-  text-align: center;
-  padding: 20px 0;
   background-color: #021f40;
   color: #f0f8ff;
+  text-align: center;
+  padding: 20px 0;
+  margin-top: auto;
 }
-
 
 footer .container {
   display: flex;
   flex-direction: column;
+  align-items: center;
 }
 
 footer .links {
   display: flex;
   justify-content: center;
   gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
 }
 
 footer small {
-  font-size: 24px;
+  font-size: 18px;
 }
 
+/* ====================
+   LINKS
+==================== */
 
-/* Link Styles */
 a {
-  color: #f0f8ff; 
+  color: #f0f8ff;
+  text-decoration: none;
 }
 
-a:hover {
-  color: #c20032; 
-}
-
+a:hover,
 a:active {
-  color: #c20032; 
+  color: #c20032;
 }
 
+/* ====================
+   MEDIA QUERIES
+==================== */
 
-
-
-/* Media Query for Small Screens */
 @media (max-width: 768px) {
   .header {
-    padding: 20px 10px;
+    flex-direction: column;
+    padding: 20px 20px;
+    text-align: center;
   }
 
   .brand_name {
     font-size: 30px;
-    margin: 10px 0;
+    margin-top: 10px;
     text-align: center;
-  }
-
-  .logo_img {
-    margin-bottom: 10px;
   }
 
   .hero_content {
     font-size: 16px;
     margin: 25px;
   }
-  footer small {
-    font-size: 12px; 
-  }
 
   .game-table th,
   .game-table td {
-    padding: 10px; /* Further reduced padding for very small screens */
-  }
-  
-  .custom-btn {
-    margin-left: calc(50% - 10px); 
+    padding: 15px;
   }
 
   .game-table img {
-    width: 50px; 
-    height: 50px; 
+    width: 50px;
+    height: 50px;
+    margin: 0 5px;
   }
-  .game-table td.team-info {
-    padding-right: 20px; /* Adjust the padding to add space between elements */
+
+  .custom-btn {
+    font-size: 16px;
+    padding: 10px 15px;
   }
-  
-  .at {
-    margin-right: 10px;
-  }
-  
-  .game-table td.team-info img {
-    margin-right: 10px;
-    margin-left: 10px; 
+
+  footer small {
+    font-size: 14px;
   }
 }

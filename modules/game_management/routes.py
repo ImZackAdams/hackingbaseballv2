@@ -1,58 +1,52 @@
-import pandas as pd
-from flask import Blueprint, render_template
-from .utils import get_or_update_schedules
+import os
 from datetime import datetime
+
+import statsapi  # MLB-StatsAPI
+from flask import Blueprint, render_template
 
 game_management = Blueprint('game_management', __name__)
 
+# Mapping of team names to abbreviations for logo lookup
+team_name_to_abbreviation = {
+    'Arizona Diamondbacks': 'ARI', 'Atlanta Braves': 'ATL', 'Baltimore Orioles': 'BAL', 'Boston Red Sox': 'BOS',
+    'Chicago Cubs': 'CHC', 'Cincinnati Reds': 'CIN', 'Cleveland Guardians': 'CLE', 'Colorado Rockies': 'COL',
+    'Chicago White Sox': 'CHW', 'Detroit Tigers': 'DET', 'Houston Astros': 'HOU', 'Kansas City Royals': 'KCR',
+    'Los Angeles Angels': 'LAA', 'Los Angeles Dodgers': 'LAD', 'Miami Marlins': 'MIA', 'Milwaukee Brewers': 'MIL',
+    'Minnesota Twins': 'MIN', 'New York Mets': 'NYM', 'New York Yankees': 'NYY', 'Oakland Athletics': 'OAK',
+    'Philadelphia Phillies': 'PHI', 'Pittsburgh Pirates': 'PIT', 'San Diego Padres': 'SDP', 'Seattle Mariners': 'SEA',
+    'San Francisco Giants': 'SFG', 'St. Louis Cardinals': 'STL', 'Tampa Bay Rays': 'TBR', 'Texas Rangers': 'TEX',
+    'Toronto Blue Jays': 'TOR', 'Washington Nationals': 'WSN'
+}
+
 @game_management.route('/')
 def index():
-    # Hardcoded test date from the 2024 season (adjust if needed)
-    test_date = datetime.strptime('2024-03-28', '%Y-%m-%d').date()
+    demo_date = os.getenv("HB_DEMO_DATE")
+    if demo_date:
+        try:
+            demo_dt = datetime.strptime(demo_date, "%Y-%m-%d")
+            today_str = demo_dt.strftime("%m/%d/%Y")
+            today_display = demo_dt.strftime("%Y-%m-%d")
+        except ValueError:
+            today_str = datetime.now().strftime("%m/%d/%Y")
+            today_display = datetime.now().strftime("%Y-%m-%d")
+    else:
+        today_str = datetime.now().strftime("%m/%d/%Y")
+        today_display = datetime.now().strftime("%Y-%m-%d")
 
-    # Load the schedules
-    schedules = get_or_update_schedules(test_date.year)
+    games_data = statsapi.schedule(start_date=today_str, end_date=today_str)
 
-    # Ensure 'Date' column is a datetime object
-    schedules['Date'] = pd.to_datetime(schedules['Date'], errors='coerce')
-
-    # Filter schedules for the test date
-    test_games = schedules[schedules['Date'].dt.date == test_date]
-
-    # Create a list of game objects
     games = []
-    for _, row in test_games.iterrows():
-        game = {
-            'id': row['id'] if 'id' in row else 'Unknown',
-            'away_team': row['Opp'],
-            'home_team': row['Tm'],
-            'formatted_date': row['Date'].strftime('%Y-%m-%d') if not pd.isnull(row['Date']) else 'Unknown Date'
+    for game in games_data:
+        away = game["away_name"]
+        home = game["home_name"]
+        game_obj = {
+            "id": game["game_id"],
+            "away_team": away,
+            "home_team": home,
+            "away_abbr": team_name_to_abbreviation.get(away, "default"),
+            "home_abbr": team_name_to_abbreviation.get(home, "default"),
+            "formatted_date": today_display,
         }
-        games.append(game)
+        games.append(game_obj)
 
-    return render_template('index.html', games=games)
-
-# Original dynamic code for reference (commented out)
-# @game_management.route('/')
-# def index():
-#     today = datetime.now().date()
-#     schedules = get_or_update_schedules(today.year)
-
-#     # Ensure 'Date' column is a datetime object
-#     schedules['Date'] = pd.to_datetime(schedules['Date'], errors='coerce')
-
-#     # Filter schedules for today's games
-#     todays_games = schedules[schedules['Date'].dt.date == today]
-
-#     # Create a list of game objects
-#     games = []
-#     for _, row in todays_games.iterrows():
-#         game = {
-#             'id': row['id'] if 'id' in row else 'Unknown',
-#             'away_team': row['Opp'],
-#             'home_team': row['Tm'],
-#             'formatted_date': row['Date'].strftime('%Y-%m-%d') if not pd.isnull(row['Date']) else 'Unknown Date'
-#         }
-#         games.append(game)
-
-#     return render_template('index.html', games=games)
+    return render_template("index.html", games=games, demo_date=demo_date)
