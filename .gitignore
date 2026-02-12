@@ -172,3 +172,4 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/modules/prediction/cleaned_baseball_data.db
 modules/prediction/cleaned_baseball_data.db
+modules/prediction/cleaned_baseball_data.db
